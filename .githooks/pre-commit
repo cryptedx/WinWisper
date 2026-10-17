@@ -1,0 +1,10 @@
+#!/bin/sh
+# Enable once per clone:  git config core.hooksPath .githooks
+
+# mattpocock-skills >= 1.3 only read GLOSSARY.md/GLOSSARY-MAP.md.
+if git diff --cached --name-only --diff-filter=ACR | grep -qE '(^|/)CONTEXT(-MAP)?\.md$'; then
+  echo "pre-commit: CONTEXT.md/CONTEXT-MAP.md are now GLOSSARY.md/GLOSSARY-MAP.md" >&2; exit 1
+fi
+if git diff --cached -U0 --diff-filter=ACMR -- . ':!.scratch' ':!.githooks' | grep '^+[^+]' | grep -qE 'CONTEXT(-MAP)?\.md'; then
+  echo "pre-commit: new reference to CONTEXT.md, use GLOSSARY.md" >&2; exit 1
+fi

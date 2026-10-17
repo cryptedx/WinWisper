@@ -1,0 +1,1616 @@
+{
+ "note": "Synthetic. Qualification fixtures (ticket 02) for language detection: the 40 frozen sources, the distinct int8 greedy outputs, and the 160 challenge inputs. Labels: de, en, any (either direction is acceptable), none (no letters).",
+ "sources": [
+  {
+   "id": "de-en-dev-01",
+   "language": "de",
+   "text": "Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien."
+  },
+  {
+   "id": "de-en-dev-02",
+   "language": "de",
+   "text": "Ich habe die Präsentation in Microsoft PowerPoint erstellt und sie anschließend im Teams-Kanal von Projekt Nordlicht geteilt."
+  },
+  {
+   "id": "de-en-dev-03",
+   "language": "de",
+   "text": "Wir müssen das Feature noch reviewen, bevor wir den Pull Request mergen und das Release deployen."
+  },
+  {
+   "id": "de-en-dev-04",
+   "language": "de",
+   "text": "Kannst du mir das Meeting-Protokoll per Mail schicken und den Call auf Freitag verschieben?"
+  },
+  {
+   "id": "de-en-dev-05",
+   "language": "de",
+   "text": "Die Rechnung über 1.249,50 Euro ist am 15. März 2026 fällig, die Lieferung wiegt 12,5 Kilogramm."
+  },
+  {
+   "id": "de-en-dev-06",
+   "language": "de",
+   "text": "Das Treffen findet von 9:30 bis 11:00 Uhr in Raum 4.12 statt, und wir erwarten etwa 25 Teilnehmer."
+  },
+  {
+   "id": "de-en-dev-07",
+   "language": "de",
+   "text": "Das Update wurde nicht installiert, weil die Prüfsumme nicht stimmte. Trotzdem läuft die Anwendung stabil."
+  },
+  {
+   "id": "de-en-dev-08",
+   "language": "de",
+   "text": "also ich hab gestern das backup gestartet aber es ist nach zehn minuten abgebrochen ich glaube die festplatte war voll"
+  },
+  {
+   "id": "de-en-held-01",
+   "language": "de",
+   "text": "Die Datenbank läuft im Container und wird über einen persistenten Speicher eingebunden. Bei jedem Neustart werden die Migrationen automatisch ausgeführt."
+  },
+  {
+   "id": "de-en-held-02",
+   "language": "de",
+   "text": "Der Load Balancer verteilt die Anfragen auf drei Instanzen. Wenn eine Instanz ausfällt, übernimmt eine der beiden anderen ihren Anteil."
+  },
+  {
+   "id": "de-en-held-03",
+   "language": "de",
+   "text": "Bitte öffne die Datei in Visual Studio Code und installiere die Erweiterung für PowerShell."
+  },
+  {
+   "id": "de-en-held-04",
+   "language": "de",
+   "text": "Das Dashboard in Power BI zeigt die Zahlen aus SAP, und der Export nach Excel funktioniert auch."
+  },
+  {
+   "id": "de-en-held-05",
+   "language": "de",
+   "text": "Der Kunde wünscht ein Update des Dashboards, aber das Backlog ist schon voll, deshalb schieben wir den Sprint um eine Woche."
+  },
+  {
+   "id": "de-en-held-06",
+   "language": "de",
+   "text": "Ich habe das Meeting gecancelt, weil der Speaker krank ist, und wir machen stattdessen einen kurzen Call."
+  },
+  {
+   "id": "de-en-held-07",
+   "language": "de",
+   "text": "Am 3. Oktober 2026 fahren wir 450 Kilometer nach München und kommen gegen 18:45 Uhr an."
+  },
+  {
+   "id": "de-en-held-08",
+   "language": "de",
+   "text": "Die Miete beträgt 890 Euro im Monat, die Kaution 2.670 Euro, und der Vertrag läuft bis zum 31.12.2027."
+  },
+  {
+   "id": "de-en-held-09",
+   "language": "de",
+   "text": "Ich habe die Datei nicht gelöscht, sondern nur verschoben. Es fehlen keine Daten."
+  },
+  {
+   "id": "de-en-held-10",
+   "language": "de",
+   "text": "Wir können den Termin am Dienstag leider nicht wahrnehmen, aber am Mittwoch haben wir keine Einwände."
+  },
+  {
+   "id": "de-en-held-11",
+   "language": "de",
+   "text": "hallo frau berger ich wollte kurz nachfragen ob der vertrag schon unterschrieben ist und wann wir mit der lieferung rechnen können"
+  },
+  {
+   "id": "de-en-held-12",
+   "language": "de",
+   "text": "der drucker im zweiten stock geht nicht mehr weil kein papier drin ist bitte legt neues nach und meldet euch wenn es klappt"
+  },
+  {
+   "id": "en-de-dev-01",
+   "language": "en",
+   "text": "The build failed because a dependency could not be resolved. Please clear the cache and run the pipeline again."
+  },
+  {
+   "id": "en-de-dev-02",
+   "language": "en",
+   "text": "I created the spreadsheet in Microsoft Excel and shared it in the Teams channel of Project Atlas."
+  },
+  {
+   "id": "en-de-dev-03",
+   "language": "en",
+   "text": "The Kündigungsfrist is three months, so we have to send the letter to the Vermieter before the end of June."
+  },
+  {
+   "id": "en-de-dev-04",
+   "language": "en",
+   "text": "Please send me the Protokoll of the meeting and move the Termin to Friday."
+  },
+  {
+   "id": "en-de-dev-05",
+   "language": "en",
+   "text": "The invoice for 1,249.50 euros is due on March 15, 2026, and the shipment weighs 12.5 kilograms."
+  },
+  {
+   "id": "en-de-dev-06",
+   "language": "en",
+   "text": "The meeting runs from 9:30 to 11:00 a.m. in room 4.12, and we expect about 25 participants."
+  },
+  {
+   "id": "en-de-dev-07",
+   "language": "en",
+   "text": "The patch was not applied because the signature was invalid. The application still works without problems."
+  },
+  {
+   "id": "en-de-dev-08",
+   "language": "en",
+   "text": "hi can you check whether the invoice from last week was paid because the customer says they never got a reminder"
+  },
+  {
+   "id": "en-de-held-01",
+   "language": "en",
+   "text": "The service reads its configuration from environment variables and writes structured logs to standard output. Secrets are injected at startup and are never stored in the image."
+  },
+  {
+   "id": "en-de-held-02",
+   "language": "en",
+   "text": "Requests are routed through a reverse proxy that terminates TLS. If a node fails its health check, it is removed from the pool until it recovers."
+  },
+  {
+   "id": "en-de-held-03",
+   "language": "en",
+   "text": "Please open the file in Visual Studio Code and install the extension for Python."
+  },
+  {
+   "id": "en-de-held-04",
+   "language": "en",
+   "text": "Our tickets are in Jira, but the agreements happen in Slack and in GitHub comments, not by email."
+  },
+  {
+   "id": "en-de-held-05",
+   "language": "en",
+   "text": "The Datenschutzbeauftragter must approve the new form before the Betriebsrat meets on Thursday."
+  },
+  {
+   "id": "en-de-held-06",
+   "language": "en",
+   "text": "Ms Berger from the Ordnungsamt confirmed that the Genehmigung will arrive next week."
+  },
+  {
+   "id": "en-de-held-07",
+   "language": "en",
+   "text": "On October 3, 2026, we drive 450 kilometers to Munich and arrive at around 6:45 p.m."
+  },
+  {
+   "id": "en-de-held-08",
+   "language": "en",
+   "text": "The rent is 1,150 euros a month, the deposit is 3,450 euros, and the contract runs until June 30, 2028."
+  },
+  {
+   "id": "en-de-held-09",
+   "language": "en",
+   "text": "We have not changed the password, and nobody outside the team has access to the account."
+  },
+  {
+   "id": "en-de-held-10",
+   "language": "en",
+   "text": "I can't join the workshop on Monday, but I'm not against moving it to Thursday."
+  },
+  {
+   "id": "en-de-held-11",
+   "language": "en",
+   "text": "hello mr weber i just wanted to ask whether the contract has been signed yet and when we can expect the delivery"
+  },
+  {
+   "id": "en-de-held-12",
+   "language": "en",
+   "text": "the printer on the second floor is broken because there is no paper in it please refill it and let me know when it works again"
+  }
+ ],
+ "outputs": [
+  {
+   "id": "de-en-dev-01",
+   "language": "en",
+   "text": "The server no longer responds because the memory is full. Please restart the service and check the log files."
+  },
+  {
+   "id": "de-en-dev-02",
+   "language": "en",
+   "text": "I created the presentation in Microsoft PowerPoint and then shared it in the Team Channel of Project Nordlicht."
+  },
+  {
+   "id": "de-en-dev-03",
+   "language": "en",
+   "text": "We need to review the feature before we merge the pull request and deploy the release."
+  },
+  {
+   "id": "de-en-dev-04",
+   "language": "en",
+   "text": "Can you send me the meeting protocol by e-mail and postpone the call to Friday?"
+  },
+  {
+   "id": "de-en-dev-05",
+   "language": "en",
+   "text": "The invoice for 1,249.50 euros is due on 15 March 2026, the delivery weighs 12.5 kilograms."
+  },
+  {
+   "id": "de-en-dev-06",
+   "language": "en",
+   "text": "The meeting will take place from 9:30 to 11:00 in room 4.12, and we expect about 25 participants."
+  },
+  {
+   "id": "de-en-dev-07",
+   "language": "en",
+   "text": "The update was not installed because the checksum was not correct. Nevertheless, the application is stable."
+  },
+  {
+   "id": "de-en-dev-08",
+   "language": "en",
+   "text": "So I started the backup yesterday but it's broken off after ten minutes I think the hard drive was full"
+  },
+  {
+   "id": "de-en-dev-02",
+   "language": "en",
+   "text": "I created the presentation in Microsoft PowerPoint and then shared it in the team channel of Project Nordlicht."
+  },
+  {
+   "id": "de-en-dev-03",
+   "language": "en",
+   "text": "We still have to review the feature before we merge the pull request and deploy the release."
+  },
+  {
+   "id": "de-en-dev-08",
+   "language": "en",
+   "text": "So I started the backup yesterday but it's broken down after ten minutes I think the hard drive was full"
+  },
+  {
+   "id": "de-en-dev-03",
+   "language": "en",
+   "text": "We still need to review the feature before we merge the pull request and deploy the release."
+  },
+  {
+   "id": "de-en-dev-07",
+   "language": "en",
+   "text": "The update was not installed because the checksum was not correct. Nevertheless, the application is running stable."
+  },
+  {
+   "id": "en-de-dev-01",
+   "language": "de",
+   "text": "Der Build ist fehlgeschlagen, da eine Abhängigkeit nicht behoben werden konnte. Bitte löschen Sie den Cache und führen Sie die Pipeline erneut aus."
+  },
+  {
+   "id": "en-de-dev-02",
+   "language": "de",
+   "text": "Ich habe die Tabelle in Microsoft Excel erstellt und im Team-Kanal von Project Atlas geteilt."
+  },
+  {
+   "id": "en-de-dev-03",
+   "language": "de",
+   "text": "Der Kündigungsfrist ist drei Monate, also müssen wir den Brief noch vor Ende Juni an den Vermieter schicken."
+  },
+  {
+   "id": "en-de-dev-04",
+   "language": "de",
+   "text": "Schicken Sie mir bitte das Protokoll des Treffens und verschieben Sie die Termin auf Freitag."
+  },
+  {
+   "id": "en-de-dev-05",
+   "language": "de",
+   "text": "Die Rechnung für 1.249,50 Euro ist am 15. März 2026 fällig, die Sendung wiegt 12,5 Kilogramm."
+  },
+  {
+   "id": "en-de-dev-06",
+   "language": "de",
+   "text": "Das Treffen findet von 9:30 bis 11:00 Uhr in Raum 4.12 statt und wir erwarten ca. 25 Teilnehmer."
+  },
+  {
+   "id": "en-de-dev-07",
+   "language": "de",
+   "text": "Der Patch wurde nicht angewendet, weil die Signatur ungültig war. Die Anwendung funktioniert immer noch problemlos."
+  },
+  {
+   "id": "en-de-dev-08",
+   "language": "de",
+   "text": "Hallo können Sie überprüfen, ob die Rechnung von letzter Woche bezahlt wurde, weil der Kunde sagt, sie nie eine Erinnerung erhalten"
+  },
+  {
+   "id": "en-de-dev-02",
+   "language": "de",
+   "text": "Ich erstellte die Tabellenkalkulation in Microsoft Excel und teilte sie im Team-Kanal von Project Atlas mit."
+  },
+  {
+   "id": "en-de-dev-03",
+   "language": "de",
+   "text": "Der Kündigungsfrist ist drei Monate, also müssen wir den Brief noch vor Ende Juni an die Vermieter schicken."
+  },
+  {
+   "id": "en-de-dev-05",
+   "language": "de",
+   "text": "Die Rechnung für 1.249,50 Euro ist am 15. März 2026 fällig und der Versand wiegt 12,5 Kilogramm."
+  },
+  {
+   "id": "en-de-dev-04",
+   "language": "de",
+   "text": "Schicken Sie mir bitte das Protokoll der Sitzung und verschieben Sie die Termin auf Freitag."
+  },
+  {
+   "id": "en-de-dev-05",
+   "language": "de",
+   "text": "Die Rechnung für 1.249,50 Euro ist am 15. März 2026 fällig, und die Sendung wiegt 12,5 Kilogramm."
+  },
+  {
+   "id": "de-en-held-01",
+   "language": "en",
+   "text": "The database runs in the container and is integrated via a persistent memory. With each restart, the migrations are executed automatically."
+  },
+  {
+   "id": "de-en-held-02",
+   "language": "en",
+   "text": "The load balancer distributes the requests to three instances. If one instance fails, one of the other two takes over their share."
+  },
+  {
+   "id": "de-en-held-03",
+   "language": "en",
+   "text": "Please open the file in Visual Studio Code and install the extension for PowerShell."
+  },
+  {
+   "id": "de-en-held-04",
+   "language": "en",
+   "text": "The Dashboard in Power BI shows the numbers from SAP, and the export to Excel also works."
+  },
+  {
+   "id": "de-en-held-04",
+   "language": "en",
+   "text": "The Dashboard in Power BI shows the numbers from SAP, and the export to Excel works as well."
+  },
+  {
+   "id": "de-en-held-05",
+   "language": "en",
+   "text": "The customer wants an update of the dashboard, but the backlog is already full, so we push the sprint by one week."
+  },
+  {
+   "id": "de-en-held-06",
+   "language": "en",
+   "text": "I canceled the meeting because the speaker is sick, and instead we make a short call."
+  },
+  {
+   "id": "de-en-held-06",
+   "language": "en",
+   "text": "I canceled the meeting because the speaker is sick, and we're gonna make a short call instead."
+  },
+  {
+   "id": "de-en-held-07",
+   "language": "en",
+   "text": "On 3rd October 2026 we drive 450 kilometers to Munich and arrive around 18:45 clock."
+  },
+  {
+   "id": "de-en-held-07",
+   "language": "en",
+   "text": "On October 3rd, 2026 we drive 450 kilometers to Munich and arrive at around 18:45."
+  },
+  {
+   "id": "de-en-held-08",
+   "language": "en",
+   "text": "The rent is 890 euros per month, the deposit is 2,670 euros, and the contract runs until 31.12.2027."
+  },
+  {
+   "id": "de-en-held-08",
+   "language": "en",
+   "text": "The rent is 890 euros per month, the deposit is 2.670 euros, and the contract runs until 31.12.2027."
+  },
+  {
+   "id": "de-en-held-09",
+   "language": "en",
+   "text": "I didn't delete the file, I just moved it."
+  },
+  {
+   "id": "de-en-held-10",
+   "language": "en",
+   "text": "Unfortunately, we cannot make the appointment on Tuesday, but on Wednesday we have no objections."
+  },
+  {
+   "id": "de-en-held-10",
+   "language": "en",
+   "text": "Unfortunately, we cannot make the date on Tuesday, but on Wednesday we have no objections."
+  },
+  {
+   "id": "de-en-held-11",
+   "language": "en",
+   "text": "hello woman berger I wanted to ask if the contract is already signed and when we can expect the delivery"
+  },
+  {
+   "id": "de-en-held-12",
+   "language": "en",
+   "text": "the printer on the second floor is no longer going because no paper is in it please post new and report if it works"
+  },
+  {
+   "id": "de-en-held-12",
+   "language": "en",
+   "text": "the printer on the second floor no longer works because no paper is in it please post new and report when it works"
+  },
+  {
+   "id": "en-de-held-01",
+   "language": "de",
+   "text": "Der Dienst liest seine Konfiguration von Umgebungsvariablen aus und schreibt strukturierte Protokolle an die Standardausgabe. Geheimnisse werden beim Start injiziert und werden nie im Bild gespeichert."
+  },
+  {
+   "id": "en-de-held-01",
+   "language": "de",
+   "text": "Der Dienst liest seine Konfiguration von Umgebungsvariablen aus und schreibt strukturierte Protokolle an die Standardausgabe. Geheimnisse werden beim Start eingespritzt und werden nie im Bild gespeichert."
+  },
+  {
+   "id": "en-de-held-01",
+   "language": "de",
+   "text": "Der Dienst liest seine Konfiguration aus Umgebungsvariablen und schreibt strukturierte Protokolle auf die Standardausgabe. Geheimnisse werden beim Start injiziert und werden nie im Bild gespeichert."
+  },
+  {
+   "id": "en-de-held-02",
+   "language": "de",
+   "text": "Die Anfragen werden über einen Reverse Proxy geleitet, der TLS beendet. Wenn ein Knoten seinen Gesundheitscheck nicht durchführt, wird er aus dem Pool entfernt, bis er sich erholt."
+  },
+  {
+   "id": "en-de-held-02",
+   "language": "de",
+   "text": "Die Anfragen werden über einen Reverse Proxy geleitet, der TLS beendet. Wenn ein Knoten seine Gesundheitsprüfung nicht durchführt, wird er vom Pool entfernt, bis er sich erholt."
+  },
+  {
+   "id": "en-de-held-02",
+   "language": "de",
+   "text": "Die Anfragen werden durch einen Reverse Proxy geleitet, der TLS beendet. Wenn ein Knoten seine Gesundheitsprüfung nicht durchführt, wird er aus dem Pool entfernt, bis er wiedererlangt."
+  },
+  {
+   "id": "en-de-held-03",
+   "language": "de",
+   "text": "Bitte öffnen Sie die Datei im Visual Studio Code und installieren Sie die Erweiterung für Python."
+  },
+  {
+   "id": "en-de-held-04",
+   "language": "de",
+   "text": "Unsere Tickets sind in Jira, aber die Vereinbarungen passieren in Slack und in GitHub Kommentare, nicht per E-Mail."
+  },
+  {
+   "id": "en-de-held-04",
+   "language": "de",
+   "text": "Unsere Tickets sind in Jira, aber die Vereinbarungen geschehen in Slack und in GitHub Kommentare, nicht per E-Mail."
+  },
+  {
+   "id": "en-de-held-04",
+   "language": "de",
+   "text": "Unsere Tickets sind in Jira, aber die Vereinbarungen finden in Slack und in GitHub Kommentare statt, nicht per E-Mail."
+  },
+  {
+   "id": "en-de-held-05",
+   "language": "de",
+   "text": "Die Datenschutzbeauftragte muss das neue Formular vor dem Betriebsrat am Donnerstag genehmigen."
+  },
+  {
+   "id": "en-de-held-05",
+   "language": "de",
+   "text": "Der Datenschutzbeauftragte muss das neue Formular genehmigen, bevor der Betriebsrat am Donnerstag zusammentritt."
+  },
+  {
+   "id": "en-de-held-05",
+   "language": "de",
+   "text": "Die Datenschutzbeauftragte muss das neue Formular vor der Sitzung des Betriebsrats am Donnerstag genehmigen."
+  },
+  {
+   "id": "en-de-held-06",
+   "language": "de",
+   "text": "Frau Berger vom Ordnungsamt bestätigt, dass die Genehmung nächste Woche ankommt."
+  },
+  {
+   "id": "en-de-held-06",
+   "language": "de",
+   "text": "Frau Berger vom Ordnungsamt bestätigt, dass die Genehmung nächste Woche eintreffen wird."
+  },
+  {
+   "id": "en-de-held-06",
+   "language": "de",
+   "text": "Frau Berger vom Ordnungsamt bestätigt, dass die Genehmigung nächste Woche ankommt."
+  },
+  {
+   "id": "en-de-held-07",
+   "language": "de",
+   "text": "Am 3. Oktober 2026 fahren wir 450 Kilometer nach München und kommen um 18:45 Uhr an."
+  },
+  {
+   "id": "en-de-held-08",
+   "language": "de",
+   "text": "Die Miete beträgt 1.150 Euro pro Monat, die Kaution 3.450 Euro, und der Vertrag läuft bis 30. Juni 2028."
+  },
+  {
+   "id": "en-de-held-08",
+   "language": "de",
+   "text": "Die Miete beträgt 1.150 Euro pro Monat, die Kaution 3.450 Euro, und der Vertrag läuft bis zum 30. Juni 2028."
+  },
+  {
+   "id": "en-de-held-09",
+   "language": "de",
+   "text": "Wir haben das Passwort nicht geändert, und niemand außerhalb des Teams hat Zugang zum Konto."
+  },
+  {
+   "id": "en-de-held-09",
+   "language": "de",
+   "text": "Wir haben das Passwort nicht geändert und niemand außerhalb des Teams hat Zugang zum Konto."
+  },
+  {
+   "id": "en-de-held-09",
+   "language": "de",
+   "text": "Wir haben das Passwort nicht geändert, und niemand außerhalb des Teams hat Zugriff auf das Konto."
+  },
+  {
+   "id": "en-de-held-10",
+   "language": "de",
+   "text": "Ich kann Montag nicht an dem Workshop teilnehmen, aber ich bin nicht dagegen, ihn am Donnerstag zu verlegen."
+  },
+  {
+   "id": "en-de-held-10",
+   "language": "de",
+   "text": "Ich kann am Montag nicht an dem Workshop teilnehmen, aber ich bin nicht dagegen, es auf Donnerstag zu verschieben."
+  },
+  {
+   "id": "en-de-held-10",
+   "language": "de",
+   "text": "Ich kann Montag nicht an dem Workshop teilnehmen, aber ich bin nicht dagegen, ihn am Donnerstag zu verschieben."
+  },
+  {
+   "id": "en-de-held-11",
+   "language": "de",
+   "text": "Hallo Mr Weber, ich wollte nur fragen, ob der Vertrag noch unterzeichnet wurde und wann wir die Lieferung erwarten können"
+  },
+  {
+   "id": "en-de-held-11",
+   "language": "de",
+   "text": "Hallo Mr. Weber, ich wollte nur fragen, ob der Vertrag noch unterzeichnet wurde und wann wir mit der Lieferung rechnen können."
+  },
+  {
+   "id": "en-de-held-11",
+   "language": "de",
+   "text": "Hallo Mr Weber, ich wollte nur fragen, ob der Vertrag noch unterzeichnet wurde und wann wir die Lieferung erwarten können."
+  },
+  {
+   "id": "en-de-held-12",
+   "language": "de",
+   "text": "der Drucker im zweiten Stock ist kaputt, weil es kein Papier darin bitte füllen Sie es und lassen Sie mich wissen, wenn es wieder funktioniert"
+  },
+  {
+   "id": "en-de-held-12",
+   "language": "de",
+   "text": "der Drucker im zweiten Stock ist kaputt, weil es kein Papier darin gibt, bitte befüllen Sie es und lassen Sie mich wissen, wenn es wieder funktioniert"
+  },
+  {
+   "id": "en-de-held-12",
+   "language": "de",
+   "text": "der Drucker im zweiten Stock ist kaputt, weil es kein Papier darin gibt, bitte befüllen Sie es und lassen Sie es mich wissen, wenn es wieder funktioniert"
+  }
+ ],
+ "challenge": [
+  {
+   "category": "one-word",
+   "expected": "de",
+   "text": "Datei",
+   "id": "langid-001"
+  },
+  {
+   "category": "one-word",
+   "expected": "de",
+   "text": "Danke",
+   "id": "langid-002"
+  },
+  {
+   "category": "one-word",
+   "expected": "de",
+   "text": "Verzögerung",
+   "id": "langid-003"
+  },
+  {
+   "category": "one-word",
+   "expected": "de",
+   "text": "Entschuldigung",
+   "id": "langid-004"
+  },
+  {
+   "category": "one-word",
+   "expected": "de",
+   "text": "Feierabend",
+   "id": "langid-005"
+  },
+  {
+   "category": "one-word",
+   "expected": "de",
+   "text": "nicht",
+   "id": "langid-006"
+  },
+  {
+   "category": "one-word",
+   "expected": "de",
+   "text": "Übersicht",
+   "id": "langid-007"
+  },
+  {
+   "category": "one-word",
+   "expected": "de",
+   "text": "Straße",
+   "id": "langid-008"
+  },
+  {
+   "category": "one-word",
+   "expected": "de",
+   "text": "ja",
+   "id": "langid-009"
+  },
+  {
+   "category": "one-word",
+   "expected": "de",
+   "text": "bitte",
+   "id": "langid-010"
+  },
+  {
+   "category": "one-word",
+   "expected": "en",
+   "text": "Thanks",
+   "id": "langid-011"
+  },
+  {
+   "category": "one-word",
+   "expected": "en",
+   "text": "delay",
+   "id": "langid-012"
+  },
+  {
+   "category": "one-word",
+   "expected": "en",
+   "text": "please",
+   "id": "langid-013"
+  },
+  {
+   "category": "one-word",
+   "expected": "en",
+   "text": "although",
+   "id": "langid-014"
+  },
+  {
+   "category": "one-word",
+   "expected": "en",
+   "text": "the",
+   "id": "langid-015"
+  },
+  {
+   "category": "one-word",
+   "expected": "en",
+   "text": "yes",
+   "id": "langid-016"
+  },
+  {
+   "category": "one-word",
+   "expected": "en",
+   "text": "nothing",
+   "id": "langid-017"
+  },
+  {
+   "category": "one-word",
+   "expected": "en",
+   "text": "sorry",
+   "id": "langid-018"
+  },
+  {
+   "category": "one-word",
+   "expected": "en",
+   "text": "and",
+   "id": "langid-019"
+  },
+  {
+   "category": "one-word",
+   "expected": "en",
+   "text": "with",
+   "id": "langid-020"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Server",
+   "note": "shared vocabulary or false friends",
+   "id": "langid-021"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Team",
+   "note": "shared vocabulary or false friends",
+   "id": "langid-022"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Meeting",
+   "note": "shared vocabulary or false friends",
+   "id": "langid-023"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Hotel",
+   "note": "shared vocabulary or false friends",
+   "id": "langid-024"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Update",
+   "note": "shared vocabulary or false friends",
+   "id": "langid-025"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "OK",
+   "note": "shared vocabulary or false friends",
+   "id": "langid-026"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Name",
+   "note": "shared vocabulary or false friends",
+   "id": "langid-027"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Bus",
+   "note": "shared vocabulary or false friends",
+   "id": "langid-028"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Rollout",
+   "note": "shared vocabulary or false friends",
+   "id": "langid-029"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Manager",
+   "note": "shared vocabulary or false friends",
+   "id": "langid-030"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Chef",
+   "note": "false friends: word exists in both languages with different meanings",
+   "id": "langid-031"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Kind",
+   "note": "false friends: word exists in both languages with different meanings",
+   "id": "langid-032"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Gift",
+   "note": "false friends: word exists in both languages with different meanings",
+   "id": "langid-033"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Rat",
+   "note": "false friends: word exists in both languages with different meanings",
+   "id": "langid-034"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Brief",
+   "note": "false friends: word exists in both languages with different meanings",
+   "id": "langid-035"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Hut",
+   "note": "false friends: word exists in both languages with different meanings",
+   "id": "langid-036"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "fast",
+   "note": "false friends: word exists in both languages with different meanings",
+   "id": "langid-037"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Rock",
+   "note": "false friends: word exists in both languages with different meanings",
+   "id": "langid-038"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Angel",
+   "note": "false friends: word exists in both languages with different meanings",
+   "id": "langid-039"
+  },
+  {
+   "category": "one-word",
+   "expected": "any",
+   "text": "Mist",
+   "note": "false friends: word exists in both languages with different meanings",
+   "id": "langid-040"
+  },
+  {
+   "category": "one-word",
+   "expected": "none",
+   "text": "2027",
+   "id": "langid-041"
+  },
+  {
+   "category": "one-word",
+   "expected": "none",
+   "text": "42",
+   "id": "langid-042"
+  },
+  {
+   "category": "one-word",
+   "expected": "none",
+   "text": "€",
+   "id": "langid-043"
+  },
+  {
+   "category": "one-word",
+   "expected": "none",
+   "text": "😀",
+   "id": "langid-044"
+  },
+  {
+   "category": "two-words",
+   "expected": "de",
+   "text": "guten Morgen",
+   "id": "langid-045"
+  },
+  {
+   "category": "two-words",
+   "expected": "de",
+   "text": "nicht fertig",
+   "id": "langid-046"
+  },
+  {
+   "category": "two-words",
+   "expected": "de",
+   "text": "vielen Dank",
+   "id": "langid-047"
+  },
+  {
+   "category": "two-words",
+   "expected": "de",
+   "text": "bis morgen",
+   "id": "langid-048"
+  },
+  {
+   "category": "two-words",
+   "expected": "de",
+   "text": "wie bitte",
+   "id": "langid-049"
+  },
+  {
+   "category": "two-words",
+   "expected": "de",
+   "text": "keine Ahnung",
+   "id": "langid-050"
+  },
+  {
+   "category": "two-words",
+   "expected": "de",
+   "text": "ich komme",
+   "id": "langid-051"
+  },
+  {
+   "category": "two-words",
+   "expected": "de",
+   "text": "das Update",
+   "id": "langid-052"
+  },
+  {
+   "category": "two-words",
+   "expected": "en",
+   "text": "good morning",
+   "id": "langid-053"
+  },
+  {
+   "category": "two-words",
+   "expected": "en",
+   "text": "not ready",
+   "id": "langid-054"
+  },
+  {
+   "category": "two-words",
+   "expected": "en",
+   "text": "thank you",
+   "id": "langid-055"
+  },
+  {
+   "category": "two-words",
+   "expected": "en",
+   "text": "see you",
+   "id": "langid-056"
+  },
+  {
+   "category": "two-words",
+   "expected": "en",
+   "text": "excuse me",
+   "id": "langid-057"
+  },
+  {
+   "category": "two-words",
+   "expected": "en",
+   "text": "no idea",
+   "id": "langid-058"
+  },
+  {
+   "category": "two-words",
+   "expected": "en",
+   "text": "I agree",
+   "id": "langid-059"
+  },
+  {
+   "category": "two-words",
+   "expected": "en",
+   "text": "the update",
+   "id": "langid-060"
+  },
+  {
+   "category": "two-words",
+   "expected": "any",
+   "text": "Project Atlas",
+   "note": "product names and terms",
+   "id": "langid-061"
+  },
+  {
+   "category": "two-words",
+   "expected": "any",
+   "text": "Power BI",
+   "note": "product names and terms",
+   "id": "langid-062"
+  },
+  {
+   "category": "two-words",
+   "expected": "any",
+   "text": "Visual Studio",
+   "note": "product names and terms",
+   "id": "langid-063"
+  },
+  {
+   "category": "two-words",
+   "expected": "any",
+   "text": "Microsoft Teams",
+   "note": "product names and terms",
+   "id": "langid-064"
+  },
+  {
+   "category": "two-words",
+   "expected": "any",
+   "text": "Release Notes",
+   "note": "product names and terms",
+   "id": "langid-065"
+  },
+  {
+   "category": "two-words",
+   "expected": "any",
+   "text": "Pull Request",
+   "note": "product names and terms",
+   "id": "langid-066"
+  },
+  {
+   "category": "two-words",
+   "expected": "any",
+   "text": "Sprint Review",
+   "note": "product names and terms",
+   "id": "langid-067"
+  },
+  {
+   "category": "two-words",
+   "expected": "any",
+   "text": "Berger GmbH",
+   "note": "product names and terms",
+   "id": "langid-068"
+  },
+  {
+   "category": "three-words",
+   "expected": "de",
+   "text": "ich bin unterwegs",
+   "id": "langid-069"
+  },
+  {
+   "category": "three-words",
+   "expected": "de",
+   "text": "das ist gut",
+   "id": "langid-070"
+  },
+  {
+   "category": "three-words",
+   "expected": "de",
+   "text": "wir sind fertig",
+   "id": "langid-071"
+  },
+  {
+   "category": "three-words",
+   "expected": "de",
+   "text": "danke für alles",
+   "id": "langid-072"
+  },
+  {
+   "category": "three-words",
+   "expected": "de",
+   "text": "kannst du kommen",
+   "id": "langid-073"
+  },
+  {
+   "category": "three-words",
+   "expected": "de",
+   "text": "es funktioniert nicht",
+   "id": "langid-074"
+  },
+  {
+   "category": "three-words",
+   "expected": "de",
+   "text": "und dann noch",
+   "id": "langid-075"
+  },
+  {
+   "category": "three-words",
+   "expected": "de",
+   "text": "mit dem Zug",
+   "id": "langid-076"
+  },
+  {
+   "category": "three-words",
+   "expected": "en",
+   "text": "I am here",
+   "id": "langid-077"
+  },
+  {
+   "category": "three-words",
+   "expected": "en",
+   "text": "that is good",
+   "id": "langid-078"
+  },
+  {
+   "category": "three-words",
+   "expected": "en",
+   "text": "we are done",
+   "id": "langid-079"
+  },
+  {
+   "category": "three-words",
+   "expected": "en",
+   "text": "thanks for everything",
+   "id": "langid-080"
+  },
+  {
+   "category": "three-words",
+   "expected": "en",
+   "text": "can you come",
+   "id": "langid-081"
+  },
+  {
+   "category": "three-words",
+   "expected": "en",
+   "text": "it does not work",
+   "id": "langid-082"
+  },
+  {
+   "category": "three-words",
+   "expected": "en",
+   "text": "and then some",
+   "id": "langid-083"
+  },
+  {
+   "category": "three-words",
+   "expected": "en",
+   "text": "by the train",
+   "id": "langid-084"
+  },
+  {
+   "category": "three-words",
+   "expected": "any",
+   "text": "Quarterly Review Meeting",
+   "note": "titles, names, Latin filler",
+   "id": "langid-085"
+  },
+  {
+   "category": "three-words",
+   "expected": "any",
+   "text": "Jira Ticket 4711",
+   "note": "titles, names, Latin filler",
+   "id": "langid-086"
+  },
+  {
+   "category": "three-words",
+   "expected": "any",
+   "text": "Lorem ipsum dolor",
+   "note": "titles, names, Latin filler",
+   "id": "langid-087"
+  },
+  {
+   "category": "three-words",
+   "expected": "any",
+   "text": "New Build Failed",
+   "note": "titles, names, Latin filler",
+   "id": "langid-088"
+  },
+  {
+   "category": "three-words",
+   "expected": "any",
+   "text": "Q3 Sales Report",
+   "note": "titles, names, Latin filler",
+   "id": "langid-089"
+  },
+  {
+   "category": "three-words",
+   "expected": "any",
+   "text": "Anna Maria Berger",
+   "note": "titles, names, Latin filler",
+   "id": "langid-090"
+  },
+  {
+   "category": "mixed-de-matrix",
+   "expected": "de",
+   "text": "Bitte deploy das Release auf den Staging Server und check die Logs.",
+   "note": "German sentence with English terms",
+   "id": "langid-091"
+  },
+  {
+   "category": "mixed-de-matrix",
+   "expected": "de",
+   "text": "Wir müssen das Ticket im Backlog priorisieren und dann den Sprint planen.",
+   "note": "German sentence with English terms",
+   "id": "langid-092"
+  },
+  {
+   "category": "mixed-de-matrix",
+   "expected": "de",
+   "text": "Ich habe den Pull Request gemerged und das Deployment läuft schon.",
+   "note": "German sentence with English terms",
+   "id": "langid-093"
+  },
+  {
+   "category": "mixed-de-matrix",
+   "expected": "de",
+   "text": "Kannst du bitte das Meeting rescheduled und den Call auf Freitag legen?",
+   "note": "German sentence with English terms",
+   "id": "langid-094"
+  },
+  {
+   "category": "mixed-de-matrix",
+   "expected": "de",
+   "text": "Das Update ist live und ein Rollback ist nicht nötig.",
+   "note": "German sentence with English terms",
+   "id": "langid-095"
+  },
+  {
+   "category": "mixed-de-matrix",
+   "expected": "de",
+   "text": "Der Speaker hat den Slot gecancelt, deshalb machen wir einen kurzen Call.",
+   "note": "German sentence with English terms",
+   "id": "langid-096"
+  },
+  {
+   "category": "mixed-en-matrix",
+   "expected": "en",
+   "text": "The Betriebsrat approved the new Arbeitszeitmodell yesterday.",
+   "note": "English sentence with German terms",
+   "id": "langid-097"
+  },
+  {
+   "category": "mixed-en-matrix",
+   "expected": "en",
+   "text": "Please send the Protokoll to the Vermieter before Friday.",
+   "note": "English sentence with German terms",
+   "id": "langid-098"
+  },
+  {
+   "category": "mixed-en-matrix",
+   "expected": "en",
+   "text": "We need the Genehmigung from the Ordnungsamt before we can start.",
+   "note": "English sentence with German terms",
+   "id": "langid-099"
+  },
+  {
+   "category": "mixed-en-matrix",
+   "expected": "en",
+   "text": "Our Kundenservice team is working on the Rückerstattung today.",
+   "note": "English sentence with German terms",
+   "id": "langid-100"
+  },
+  {
+   "category": "mixed-en-matrix",
+   "expected": "en",
+   "text": "I forwarded the Kündigung to the Personalabteilung and they will reply next week.",
+   "note": "English sentence with German terms",
+   "id": "langid-101"
+  },
+  {
+   "category": "mixed-en-matrix",
+   "expected": "en",
+   "text": "The Geschäftsführer wants to see the numbers before the meeting.",
+   "note": "English sentence with German terms",
+   "id": "langid-102"
+  },
+  {
+   "category": "mixed-5050",
+   "expected": "any",
+   "text": "Das Meeting is cancelled weil der Chef krank ist.",
+   "note": "code-switching at about 50/50, matrix language unclear",
+   "id": "langid-103"
+  },
+  {
+   "category": "mixed-5050",
+   "expected": "any",
+   "text": "Ich habe das file gelöscht and moved the backup.",
+   "note": "code-switching at about 50/50, matrix language unclear",
+   "id": "langid-104"
+  },
+  {
+   "category": "mixed-5050",
+   "expected": "any",
+   "text": "Thanks für die Info, ich melde mich morgen back.",
+   "note": "code-switching at about 50/50, matrix language unclear",
+   "id": "langid-105"
+  },
+  {
+   "category": "mixed-5050",
+   "expected": "any",
+   "text": "Wir treffen uns tomorrow um neun in the lobby.",
+   "note": "code-switching at about 50/50, matrix language unclear",
+   "id": "langid-106"
+  },
+  {
+   "category": "mixed-paragraph-majority-de",
+   "expected": "de",
+   "text": "Guten Morgen zusammen. Die Lieferung ist heute angekommen und wir haben alles geprüft. Thanks for waiting.",
+   "note": "two languages in separate sentences, German is the majority",
+   "id": "langid-107"
+  },
+  {
+   "category": "mixed-paragraph-majority-de",
+   "expected": "de",
+   "text": "Der Bericht ist fertig und liegt im Ordner. Please review it by Friday. Danach schicken wir ihn an den Kunden.",
+   "note": "two languages in separate sentences, German is the majority",
+   "id": "langid-108"
+  },
+  {
+   "category": "mixed-paragraph-majority-de",
+   "expected": "de",
+   "text": "Wir haben die Änderungen besprochen und sind uns einig. See you tomorrow. Bis dahin bleibt alles wie geplant.",
+   "note": "two languages in separate sentences, German is the majority",
+   "id": "langid-109"
+  },
+  {
+   "category": "mixed-paragraph-majority-en",
+   "expected": "en",
+   "text": "Good morning everyone. The delivery arrived today and we checked everything. Danke fürs Warten.",
+   "note": "two languages in separate sentences, English is the majority",
+   "id": "langid-110"
+  },
+  {
+   "category": "mixed-paragraph-majority-en",
+   "expected": "en",
+   "text": "The report is finished and in the folder. Bitte prüft ihn bis Freitag. After that we send it to the customer.",
+   "note": "two languages in separate sentences, English is the majority",
+   "id": "langid-111"
+  },
+  {
+   "category": "mixed-paragraph-majority-en",
+   "expected": "en",
+   "text": "We discussed the changes and we all agree. Bis morgen dann. Until then everything stays as planned.",
+   "note": "two languages in separate sentences, English is the majority",
+   "id": "langid-112"
+  },
+  {
+   "category": "quoted",
+   "expected": "de",
+   "text": "Er sagte: \"We will ship on Monday and the invoice follows later\" und ging dann.",
+   "note": "German matrix with a quoted English clause",
+   "id": "langid-113"
+  },
+  {
+   "category": "quoted",
+   "expected": "de",
+   "text": "Sie hat \"Thank you for your patience\" geschrieben, aber wir haben nichts erhalten.",
+   "note": "German matrix with a quoted English clause",
+   "id": "langid-114"
+  },
+  {
+   "category": "quoted",
+   "expected": "en",
+   "text": "He said \"Wir liefern am Montag und die Rechnung folgt später\" and then left.",
+   "note": "English matrix with a quoted German clause",
+   "id": "langid-115"
+  },
+  {
+   "category": "quoted",
+   "expected": "en",
+   "text": "She wrote \"Vielen Dank für Ihre Geduld\" but we did not receive anything.",
+   "note": "English matrix with a quoted German clause",
+   "id": "langid-116"
+  },
+  {
+   "category": "sparse-lowercase",
+   "expected": "de",
+   "text": "also ich hab das gestern schon erledigt und morgen mach ich den rest",
+   "id": "langid-117"
+  },
+  {
+   "category": "sparse-lowercase",
+   "expected": "de",
+   "text": "kannst du mal schauen ob der zug heute später kommt",
+   "id": "langid-118"
+  },
+  {
+   "category": "sparse-lowercase",
+   "expected": "de",
+   "text": "ich glaube wir sollten das nicht so machen weil es zu teuer ist",
+   "id": "langid-119"
+  },
+  {
+   "category": "sparse-lowercase",
+   "expected": "de",
+   "text": "hallo herr meier ich melde mich wegen der rechnung von letzter woche",
+   "id": "langid-120"
+  },
+  {
+   "category": "sparse-lowercase",
+   "expected": "en",
+   "text": "yeah i checked it yesterday and it should be fine now",
+   "id": "langid-121"
+  },
+  {
+   "category": "sparse-lowercase",
+   "expected": "en",
+   "text": "can you look at whether the train is late today",
+   "id": "langid-122"
+  },
+  {
+   "category": "sparse-lowercase",
+   "expected": "en",
+   "text": "i think we should not do it like this because it is too expensive",
+   "id": "langid-123"
+  },
+  {
+   "category": "sparse-lowercase",
+   "expected": "en",
+   "text": "hello mr miller i am writing about the invoice from last week",
+   "id": "langid-124"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "de",
+   "text": "Am 3. Oktober 2026 um 18:45 Uhr in München.",
+   "id": "langid-125"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "de",
+   "text": "Die Rechnung über 1.249,50 Euro ist fällig.",
+   "id": "langid-126"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "de",
+   "text": "Das Paket wiegt 12,5 Kilogramm und kommt am Dienstag.",
+   "id": "langid-127"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "en",
+   "text": "On October 3, 2026 at 6:45 p.m. in Munich.",
+   "id": "langid-128"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "en",
+   "text": "The invoice for 1,249.50 euros is due.",
+   "id": "langid-129"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "en",
+   "text": "The parcel weighs 12.5 kilograms and arrives on Tuesday.",
+   "id": "langid-130"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "any",
+   "text": "Berger, Anna",
+   "note": "names and versions",
+   "id": "langid-131"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "any",
+   "text": "SAP S/4HANA 2023",
+   "note": "names and versions",
+   "id": "langid-132"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "any",
+   "text": "Visual Studio Code 1.94",
+   "note": "names and versions",
+   "id": "langid-133"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "none",
+   "text": "1.249,50 EUR",
+   "id": "langid-134"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "none",
+   "text": "12.5 kg",
+   "id": "langid-135"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "none",
+   "text": "https://example.com/path?x=1&y=2",
+   "id": "langid-136"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "none",
+   "text": "max.mustermann@example.com",
+   "id": "langid-137"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "none",
+   "text": "{ \"name\": \"value\", \"count\": 3 }",
+   "id": "langid-138"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "none",
+   "text": "...!?",
+   "id": "langid-139"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "none",
+   "text": "   ",
+   "id": "langid-140"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "none",
+   "text": "",
+   "id": "langid-141"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "none",
+   "text": "3,14159 / 2,71828",
+   "id": "langid-142"
+  },
+  {
+   "category": "numbers-entities",
+   "expected": "none",
+   "text": "C:\\Users\\public\\file.txt",
+   "id": "langid-143"
+  },
+  {
+   "category": "code",
+   "expected": "any",
+   "text": "ProcessOrder(int orderId) in OrderService.cs",
+   "note": "code and commands: no natural-language evidence",
+   "id": "langid-144"
+  },
+  {
+   "category": "code",
+   "expected": "any",
+   "text": "SELECT * FROM orders WHERE id = 5;",
+   "note": "code and commands: no natural-language evidence",
+   "id": "langid-145"
+  },
+  {
+   "category": "code",
+   "expected": "any",
+   "text": "git commit -m \"fix\"",
+   "note": "code and commands: no natural-language evidence",
+   "id": "langid-146"
+  },
+  {
+   "category": "umlaut-sz",
+   "expected": "de",
+   "text": "Größe und Übung",
+   "id": "langid-147"
+  },
+  {
+   "category": "umlaut-sz",
+   "expected": "de",
+   "text": "Fußgängerzone",
+   "id": "langid-148"
+  },
+  {
+   "category": "umlaut-sz",
+   "expected": "de",
+   "text": "über die Straße",
+   "id": "langid-149"
+  },
+  {
+   "category": "umlaut-sz",
+   "expected": "de",
+   "text": "Die Maße stimmen nicht.",
+   "id": "langid-150"
+  },
+  {
+   "category": "umlaut-sz",
+   "expected": "de",
+   "text": "schön dass du da bist",
+   "id": "langid-151"
+  },
+  {
+   "category": "umlaut-sz",
+   "expected": "de",
+   "text": "Käse oder Wurst",
+   "id": "langid-152"
+  },
+  {
+   "category": "umlaut-sz",
+   "expected": "en",
+   "text": "Mötley Crüe is on tour this summer and the tickets are sold out.",
+   "note": "English text with diacritics in names or loanwords; the diacritic alone must not decide",
+   "id": "langid-153"
+  },
+  {
+   "category": "umlaut-sz",
+   "expected": "en",
+   "text": "The naïve café owner said the résumé was fine.",
+   "note": "English text with diacritics in names or loanwords; the diacritic alone must not decide",
+   "id": "langid-154"
+  },
+  {
+   "category": "umlaut-sz",
+   "expected": "en",
+   "text": "Zoë Brontë wrote to the editor about the schedule.",
+   "note": "English text with diacritics in names or loanwords; the diacritic alone must not decide",
+   "id": "langid-155"
+  },
+  {
+   "category": "umlaut-sz",
+   "expected": "en",
+   "text": "Motörhead played in Hamburg and the crowd was loud.",
+   "note": "English text with diacritics in names or loanwords; the diacritic alone must not decide",
+   "id": "langid-156"
+  },
+  {
+   "category": "long-text",
+   "expected": "de",
+   "text": "Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. ",
+   "id": "langid-157"
+  },
+  {
+   "category": "long-text",
+   "expected": "en",
+   "text": "The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. ",
+   "id": "langid-158"
+  },
+  {
+   "category": "long-text",
+   "expected": "de",
+   "text": "Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir. Der Server antwortet nicht mehr, weil der Arbeitsspeicher voll ist. Bitte starte den Dienst neu und prüfe die Logdateien. Wenn der Fehler nach dem Neustart wieder auftritt, melde dich bitte bei mir.  Please review this by Friday. Please review this by Friday. Please review this by Friday. ",
+   "note": "long German text with a short English tail",
+   "id": "langid-159"
+  },
+  {
+   "category": "long-text",
+   "expected": "en",
+   "text": "The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me. The server no longer responds because the memory is full. Please restart the service and check the log files. If the error occurs again after the restart, please contact me.  Bitte bis Freitag prüfen. Bitte bis Freitag prüfen. Bitte bis Freitag prüfen. ",
+   "note": "long English text with a short German tail",
+   "id": "langid-160"
+  }
+ ]
+}

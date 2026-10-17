@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "speechArchive": {
+    "path": "artifacts/model/sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8.tar.bz2",
+    "bytes": 487170055,
+    "sha256": "5793d0fd397c5778d2cf2126994d58e9d56b1be7c04d13c7a15bb1b4eafb16bf"
+  },
+  "contentSha256": "f59ddf6dd3d5e09ad8836423d265ed587f9105b9180f013f823edd308a023013"
+}

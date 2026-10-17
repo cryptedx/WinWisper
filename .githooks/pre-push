@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+# Git exports its repository variables to hooks, and a push from a linked
+# worktree sets them so that plain Git commands fail. The checks create their
+# own repositories, so they must not inherit them.
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_COMMON_DIR GIT_PREFIX
+if ! "$repo_root/eng/check-local.sh"; then
+    echo 'push blocked: ./eng/check-local.sh failed' >&2
+    exit 1
+fi

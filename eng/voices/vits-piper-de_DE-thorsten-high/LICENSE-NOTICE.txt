@@ -1,0 +1,9 @@
+Voice provenance and license information
+
+Piper voices repository declares MIT in its README metadata (included).
+https://huggingface.co/rhasspy/piper-voices
+The unmodified MODEL_CARD describes dataset licensing, not a separate weight license.
+Thorsten dataset: CC0; this voice was fine-tuned from Lessac high.
+Phonemizer data: eSpeak NG, GPL-3.0-or-later; see ESPEAK-LICENSE.txt.
+Source bundle: https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-de_DE-thorsten-high.tar.bz2
+Archive SHA-256: dd4ed1b0d42c30a1a4862fc2b243e8044d52b8889c9ff3d1e99e92028888bc4a

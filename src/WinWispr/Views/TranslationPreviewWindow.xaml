@@ -1,0 +1,63 @@
+<Window
+    x:Class="WinWispr.Views.TranslationPreviewWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="WinWispr: Translation">
+    <Grid x:Name="Root"
+          RequestedTheme="Dark"
+          Background="#2C2C2C"
+          Padding="16,14,16,14"
+          RowSpacing="10"
+          RowDefinitions="Auto,*,Auto">
+        <Grid.KeyboardAccelerators>
+            <KeyboardAccelerator Key="Escape" Invoked="CancelAccelerator_Invoked" />
+            <KeyboardAccelerator Key="C" Modifiers="Control" Invoked="CopyAccelerator_Invoked" />
+            <KeyboardAccelerator Key="Enter" Invoked="ReplaceAccelerator_Invoked" />
+        </Grid.KeyboardAccelerators>
+
+        <TextBlock x:Name="DirectionText"
+                   AutomationProperties.Name="Translation direction"
+                   FontSize="12"
+                   FontWeight="SemiBold"
+                   Foreground="#B4A9FF" />
+
+        <ScrollViewer x:Name="TextScroller"
+                      Grid.Row="1"
+                      AutomationProperties.Name="Translation"
+                      IsTabStop="True"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+            <TextBlock x:Name="TranslationText"
+                       AutomationProperties.AutomationId="translation-text"
+                       FontSize="14"
+                       Foreground="#F5F5F5"
+                       TextWrapping="Wrap" />
+        </ScrollViewer>
+
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
+        <Button x:Name="SwapButton"
+                AutomationProperties.Name="Swap translation direction"
+                Content="&#x21C4;"
+                ToolTipService.ToolTip="Translate again in the opposite direction"
+                Click="SwapButton_Click" />
+        <StackPanel Grid.Column="1"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal"
+                    Spacing="8">
+            <Button x:Name="CancelButton"
+                    AutomationProperties.Name="Cancel translation"
+                    Content="Cancel (Esc)"
+                    Click="CancelButton_Click" />
+            <Button x:Name="CopyButton"
+                    AutomationProperties.Name="Copy translation"
+                    Content="Copy (Ctrl+C)"
+                    Click="CopyButton_Click" />
+            <Button x:Name="ReplaceButton"
+                    AutomationProperties.Name="Replace selection with translation"
+                    Content="Replace (Enter)"
+                    Style="{StaticResource AccentButtonStyle}"
+                    Click="ReplaceButton_Click" />
+        </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

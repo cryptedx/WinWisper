@@ -1,0 +1,18 @@
+[
+  {
+    "Id": "vits-piper-de_DE-thorsten-high",
+    "Url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-de_DE-thorsten-high.tar.bz2",
+    "Bytes": 115591546,
+    "Sha256": "dd4ed1b0d42c30a1a4862fc2b243e8044d52b8889c9ff3d1e99e92028888bc4a",
+    "ExpandedBytes": 131881256,
+    "ManifestSha256": "daf5bbc372286e8c54354d3de5879b93a4e6aba72fa388c77e8f63422b310e8a"
+  },
+  {
+    "Id": "vits-piper-en_US-ljspeech-high",
+    "Url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-ljspeech-high.tar.bz2",
+    "Bytes": 115817679,
+    "Sha256": "00c6408d2409050312193b0d40ae07fde28af7d3d45a56efcc55440db516b935",
+    "ExpandedBytes": 132233410,
+    "ManifestSha256": "73232c653dcaaa6296820bf812cbdecf2c8d468bd0e771b195810632d769132e"
+  }
+]

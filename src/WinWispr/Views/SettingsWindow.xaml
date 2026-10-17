@@ -1,0 +1,411 @@
+<Window
+    x:Class="WinWispr.Views.SettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="WinWispr">
+    <Grid>
+        <Grid.Resources>
+            <Style x:Key="SettingsHeadingStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="20" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Margin" Value="0,0,0,8" />
+            </Style>
+            <Style x:Key="SettingsHelperTextStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="44" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid x:Name="TitleBarContent" Grid.Row="0" Padding="16,0" ColumnDefinitions="Auto,Auto">
+            <Image x:Name="TitleBarIcon"
+                   x:FieldModifier="internal"
+                   Width="22"
+                   Height="22"
+                   Stretch="Uniform"
+                   Source="ms-appx:///Assets/WinWisprIcon.png"
+                   AutomationProperties.AccessibilityView="Raw" />
+            <TextBlock Grid.Column="1"
+                       Margin="10,0,0,0"
+                       VerticalAlignment="Center"
+                       FontSize="15"
+                       Text="WinWispr" />
+        </Grid>
+
+        <NavigationView x:Name="SettingsNavigation"
+                        x:FieldModifier="internal"
+                        Grid.Row="1"
+                        PaneDisplayMode="Left"
+                        OpenPaneLength="200"
+                        IsPaneToggleButtonVisible="False"
+                        IsBackButtonVisible="Collapsed"
+                        IsSettingsVisible="False"
+                        IsTitleBarAutoPaddingEnabled="False"
+                        SelectionChanged="SettingsNavigation_SelectionChanged">
+            <NavigationView.PaneHeader>
+                <TextBlock x:Name="SettingsPageTitle"
+                           x:FieldModifier="internal"
+                           Margin="16,4,16,12"
+                           Text="Settings"
+                           Style="{StaticResource TitleTextBlockStyle}"
+                           AutomationProperties.HeadingLevel="Level1" />
+            </NavigationView.PaneHeader>
+            <NavigationView.MenuItems>
+                <NavigationViewItem x:Name="GeneralNavItem" Content="General" Tag="General" IsSelected="True">
+                    <NavigationViewItem.Icon><SymbolIcon Symbol="Setting" /></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="DictationNavItem" Content="Dictation" Tag="Dictation">
+                    <NavigationViewItem.Icon><SymbolIcon Symbol="Microphone" /></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="TaskBoardNavItem" Content="Task board" Tag="TaskBoard">
+                    <NavigationViewItem.Icon><SymbolIcon Symbol="List" /></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="SpeechNavItem" x:FieldModifier="internal" Content="Speech model" Tag="Speech">
+                    <NavigationViewItem.Icon><SymbolIcon Symbol="Library" /></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="TranslationNavItem" x:FieldModifier="internal" Content="Translation" Tag="Translation">
+                    <NavigationViewItem.Icon><SymbolIcon Symbol="Globe" /></NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <ScrollViewer x:Name="PageScrollViewer"
+                          x:FieldModifier="internal"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollMode="Disabled"
+                          VerticalScrollMode="Enabled"
+                          IsVerticalRailEnabled="True">
+                <Border Padding="32,24,32,32">
+                    <Grid>
+                        <StackPanel x:Name="GeneralPage" x:FieldModifier="internal" Spacing="24">
+                            <StackPanel x:Name="HotkeyModeSection" Spacing="10">
+                                <TextBlock x:Name="HotkeyModeHeading"
+                                           x:FieldModifier="internal"
+                                           Style="{StaticResource SettingsHeadingStyle}"
+                                           Text="Hotkey &amp; Mode"
+                                           AutomationProperties.HeadingLevel="Level2" />
+                                <TextBlock Text="Global hotkey" />
+                                <Button x:Name="HotkeyButton"
+                                        AutomationProperties.Name="Global hotkey"
+                                        Content="Shift + Alt + X"
+                                        HorizontalAlignment="Left"
+                                        Click="HotkeyButton_Click" />
+                                <TextBlock x:Name="HotkeyCaptureStatusText"
+                                           x:FieldModifier="internal"
+                                           TextWrapping="Wrap"
+                                           AutomationProperties.LiveSetting="Polite" />
+                                <Button x:Name="CancelHotkeyButton"
+                                        x:FieldModifier="internal"
+                                        Content="Cancel"
+                                        AutomationProperties.Name="Cancel hotkey capture"
+                                        HorizontalAlignment="Left"
+                                        Visibility="Collapsed"
+                                        Click="CancelHotkeyButton_Click" />
+                                <TextBlock Text="Recording mode" />
+                                <ComboBox x:Name="ModeComboBox"
+                                          AutomationProperties.Name="Recording mode"
+                                          SelectedIndex="0"
+                                          SelectionChanged="ModeComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="Toggle" />
+                                    <ComboBoxItem Content="Hold" />
+                                </ComboBox>
+                                <TextBlock Style="{StaticResource SettingsHelperTextStyle}"
+                                           Text="Toggle: press once to start and again to stop. Hold: keep the hotkey pressed while speaking." />
+                            </StackPanel>
+                            <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                            <StackPanel x:Name="StartupSection" Spacing="10">
+                                <TextBlock x:Name="StartupHeading"
+                                           x:FieldModifier="internal"
+                                           Style="{StaticResource SettingsHeadingStyle}"
+                                           Text="Startup"
+                                           AutomationProperties.HeadingLevel="Level2" />
+                                <ToggleSwitch x:Name="StartupToggle"
+                                              x:FieldModifier="internal"
+                                              AutomationProperties.Name="Start with Windows"
+                                              Header="Start with Windows"
+                                              OnContent="On"
+                                              OffContent="Off"
+                                              Toggled="StartupToggle_Toggled" />
+                                <TextBlock x:Name="StartupStatusText"
+                                           x:FieldModifier="internal"
+                                           Style="{StaticResource SettingsHelperTextStyle}"
+                                           AutomationProperties.LiveSetting="Polite" />
+                            </StackPanel>
+                            <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                            <StackPanel x:Name="UpdatesSection" Spacing="10">
+                                <TextBlock x:Name="UpdatesHeading"
+                                           x:FieldModifier="internal"
+                                           Style="{StaticResource SettingsHeadingStyle}"
+                                           Text="Updates"
+                                           AutomationProperties.HeadingLevel="Level2" />
+                                <ToggleSwitch x:Name="AutomaticUpdatesToggle"
+                                              x:FieldModifier="internal"
+                                              AutomationProperties.Name="Check for updates automatically"
+                                              Header="Check for updates automatically"
+                                              OnContent="On"
+                                              OffContent="Off"
+                                              Toggled="AutomaticUpdatesToggle_Toggled" />
+                                <Button x:Name="UpdateButton"
+                                        x:FieldModifier="internal"
+                                        Content="Check for updates"
+                                        AutomationProperties.Name="Check for updates"
+                                        HorizontalAlignment="Left"
+                                        Click="UpdateButton_Click" />
+                                <TextBlock x:Name="UpdateStatusText"
+                                           x:FieldModifier="internal"
+                                           TextWrapping="Wrap"
+                                           Style="{StaticResource SettingsHelperTextStyle}"
+                                           AutomationProperties.LiveSetting="Polite" />
+                                <TextBlock Style="{StaticResource SettingsHelperTextStyle}"
+                                           TextWrapping="Wrap"
+                                           Text="WinWispr asks GitHub once a day whether a newer release exists. An update is installed only when you click it; WinWispr then restarts." />
+                            </StackPanel>
+                            <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="WinWispr stays active in the system tray when you close this window."
+                                           Style="{StaticResource SettingsHelperTextStyle}" />
+                                <TextBlock Text="Changes are saved automatically."
+                                           Style="{StaticResource SettingsHelperTextStyle}" />
+                                <TextBlock x:Name="AppVersionText"
+                                           x:FieldModifier="internal"
+                                           Style="{StaticResource SettingsHelperTextStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel x:Name="DictationPage" x:FieldModifier="internal" Spacing="24" Visibility="Collapsed">
+                            <StackPanel Spacing="10">
+                                <TextBlock Style="{StaticResource SettingsHeadingStyle}"
+                                           Text="Dictation text"
+                                           AutomationProperties.HeadingLevel="Level2" />
+                                <ToggleSwitch x:Name="VoiceCommandsToggle"
+                                              Header="German voice commands"
+                                              AutomationProperties.Name="German voice commands"
+                                              OnContent="On" OffContent="Off"
+                                              Toggled="VoiceCommandsToggle_Toggled" />
+                                <TextBlock Style="{StaticResource SettingsHelperTextStyle}"
+                                           Text="Say ‘neuer Absatz’ for a paragraph, ‘neue Zeile’ for a line break, ‘Aufzählung’ for each bullet, or ‘Doppelpunkt’ for a colon. When off, these phrases stay as spoken text." />
+                                <TextBlock x:Name="VoiceCommandsStatusText"
+                                           TextWrapping="Wrap"
+                                           AutomationProperties.LiveSetting="Polite" />
+                                <TextBox x:Name="PersonalDictionaryBox"
+                                         Header="Personal dictionary"
+                                         AutomationProperties.Name="Personal dictionary"
+                                         AcceptsReturn="True" TextWrapping="Wrap"
+                                         MinHeight="112" MaxHeight="240" MaxLength="41000"
+                                         PlaceholderText="Win Whisper = WinWispr"
+                                         TextChanged="PersonalDictionaryBox_TextChanged" />
+                                <TextBlock Style="{StaticResource SettingsHelperTextStyle}"
+                                           Text="One phrase = replacement per line, up to 100 entries. Matches ignore letter case and replace whole phrases. Valid changes save automatically on this device." />
+                                <TextBlock x:Name="DictionaryStatusText"
+                                           TextWrapping="Wrap"
+                                           AutomationProperties.LiveSetting="Polite" />
+                                <TextBlock Text="Insert last dictation again" FontWeight="SemiBold" />
+                                <TextBlock x:Name="ReplayHotkeyStatusText"
+                                           Style="{StaticResource SettingsHelperTextStyle}"
+                                           AutomationProperties.LiveSetting="Polite" />
+                                <TextBlock Style="{StaticResource SettingsHelperTextStyle}"
+                                           Text="Click the destination field, then press Ctrl + Alt + V and release the keys. The last result stays only in memory until you exit WinWispr. Available while no recording is running." />
+                            </StackPanel>
+                            <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                            <StackPanel x:Name="MicrophoneSection" Spacing="10">
+                                <TextBlock x:Name="MicrophoneHeading"
+                                           x:FieldModifier="internal"
+                                           Style="{StaticResource SettingsHeadingStyle}"
+                                           Text="Microphone"
+                                           AutomationProperties.HeadingLevel="Level2" />
+                                <TextBlock Text="Input device" />
+                                <StackPanel x:Name="MicrophoneActionsPanel"
+                                            Orientation="Vertical"
+                                            Spacing="8">
+                                    <ComboBox x:Name="MicrophoneComboBox"
+                                              x:FieldModifier="internal"
+                                              AutomationProperties.Name="Microphone"
+                                              SelectionChanged="MicrophoneComboBox_SelectionChanged" />
+                                    <Button x:Name="RefreshMicrophonesButton"
+                                            x:FieldModifier="internal"
+                                            Content="Refresh"
+                                            AutomationProperties.Name="Refresh microphones"
+                                            HorizontalAlignment="Left"
+                                            Click="RefreshMicrophonesButton_Click" />
+                                </StackPanel>
+                                <TextBlock x:Name="MicrophoneStatusText"
+                                           x:FieldModifier="internal"
+                                           Style="{StaticResource SettingsHelperTextStyle}"
+                                           Visibility="Collapsed"
+                                           AutomationProperties.LiveSetting="Polite" />
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel x:Name="TaskBoardPage" x:FieldModifier="internal" Spacing="24" Visibility="Collapsed">
+                            <StackPanel x:Name="TaskBoardSection" Spacing="10">
+                                <TextBlock Style="{StaticResource SettingsHeadingStyle}"
+                                           Text="Task board"
+                                           AutomationProperties.HeadingLevel="Level2" />
+                                <TextBlock Text="Board hotkey" />
+                                <Button x:Name="BoardHotkeyButton"
+                                        AutomationProperties.Name="Task board hotkey"
+                                        Content="Ctrl + Alt + B"
+                                        HorizontalAlignment="Left"
+                                        Click="BoardHotkeyButton_Click" />
+                                <TextBlock x:Name="BoardHotkeyStatusText"
+                                           Style="{StaticResource SettingsHelperTextStyle}"
+                                           AutomationProperties.LiveSetting="Polite" />
+                                <TextBlock Text="Task hotkey" />
+                                <Button x:Name="TaskHotkeyButton"
+                                        AutomationProperties.Name="Task capture hotkey"
+                                        Content="Ctrl + Alt + T"
+                                        HorizontalAlignment="Left"
+                                        Click="TaskHotkeyButton_Click" />
+                                <TextBlock x:Name="TaskHotkeyStatusText"
+                                           Style="{StaticResource SettingsHelperTextStyle}"
+                                           AutomationProperties.LiveSetting="Polite" />
+                                <TextBlock Text="Task hotkey mode" />
+                                <ComboBox x:Name="TaskHotkeyModeComboBox"
+                                          AutomationProperties.Name="Task hotkey mode"
+                                          SelectedIndex="0"
+                                          SelectionChanged="TaskHotkeyModeComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="Toggle" />
+                                    <ComboBoxItem Content="Hold" />
+                                </ComboBox>
+                                <TextBlock Text="Board microphone button mode" />
+                                <ComboBox x:Name="TaskButtonModeComboBox"
+                                          AutomationProperties.Name="Board microphone button mode"
+                                          SelectedIndex="0"
+                                          SelectionChanged="TaskButtonModeComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="Toggle" />
+                                    <ComboBoxItem Content="Hold" />
+                                </ComboBox>
+                                <TextBlock Style="{StaticResource SettingsHelperTextStyle}"
+                                           Text="The board opens locally and task dictation is reviewed before saving. Choose click once to start and stop, or hold while speaking." />
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel x:Name="SpeechPage" x:FieldModifier="internal" Spacing="24" Visibility="Collapsed">
+                            <StackPanel Spacing="10">
+                                <TextBlock Style="{StaticResource SettingsHeadingStyle}"
+                                           Text="Speech processing"
+                                           AutomationProperties.HeadingLevel="Level2" />
+                                <ComboBox x:Name="SpeechModeComboBox"
+                                          Header="Processing device"
+                                          HorizontalAlignment="Stretch"
+                                          AutomationProperties.Name="Speech processing device"
+                                          SelectionChanged="SpeechModeComboBox_SelectionChanged" />
+                                <TextBlock Style="{StaticResource SettingsHelperTextStyle}"
+                                           Text="Automatic prefers NVIDIA, otherwise CPU. Changes reload the model after the current dictation, without restarting the app. If GPU loading fails, CPU keeps dictation available." />
+                                <TextBlock x:Name="SpeechStatusText" TextWrapping="Wrap"
+                                           Text="Not active"
+                                           AutomationProperties.LiveSetting="Polite" />
+                                <TextBlock x:Name="SpeechSelectionStatusText" TextWrapping="Wrap"
+                                           AutomationProperties.LiveSetting="Polite" />
+                            </StackPanel>
+                            <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                            <StackPanel x:Name="ModelSection" Spacing="10">
+                                <TextBlock x:Name="ModelHeading"
+                                           x:FieldModifier="internal"
+                                           Style="{StaticResource SettingsHeadingStyle}"
+                                           Text="Model"
+                                           AutomationProperties.HeadingLevel="Level2" />
+                                <TextBlock Text="Local speech model" />
+                                <TextBlock Style="{StaticResource SettingsHelperTextStyle}"
+                                           Text="Parakeet TDT 0.6B V3 INT8 turns your voice into text." />
+                                <TextBlock Style="{StaticResource SettingsHelperTextStyle}"
+                                           Text="The model is included in the app. Speech recognition runs locally; audio and transcripts are not saved to disk, and no network access is required after installation." />
+                                <TextBlock x:Name="ModelSizeText"
+                                           Style="{StaticResource SettingsHelperTextStyle}" />
+                                <TextBlock x:Name="ModelStatusHintText"
+                                           x:FieldModifier="internal"
+                                           TextWrapping="Wrap"
+                                           AutomationProperties.LiveSetting="Polite" />
+                                <TextBlock x:Name="ModelProgressText"
+                                           x:FieldModifier="internal"
+                                           Style="{StaticResource SettingsHelperTextStyle}"
+                                           AutomationProperties.LiveSetting="Polite" />
+                                <ProgressBar x:Name="ModelProgressBar"
+                                             x:FieldModifier="internal"
+                                             Minimum="0"
+                                             Maximum="1"
+                                             Value="0"
+                                             Visibility="Collapsed"
+                                             AutomationProperties.Name="Model download progress" />
+                                <StackPanel x:Name="ModelActionsPanel"
+                                            Orientation="Vertical"
+                                            Spacing="8">
+                                    <Button x:Name="DownloadButton"
+                                            x:FieldModifier="internal"
+                                            AutomationProperties.Name="Download model"
+                                            Content="Download"
+                                            HorizontalAlignment="Left"
+                                            Click="DownloadButton_Click" />
+                                    <Button x:Name="CancelDownloadButton"
+                                            x:FieldModifier="internal"
+                                            AutomationProperties.Name="Cancel model download"
+                                            Content="Cancel"
+                                            HorizontalAlignment="Left"
+                                            Visibility="Collapsed"
+                                            Click="CancelDownloadButton_Click" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel x:Name="TranslationPage" x:FieldModifier="internal" Spacing="24" Visibility="Collapsed">
+                            <StackPanel x:Name="TranslationSection" Spacing="10">
+                                <TextBlock x:Name="TranslationHeading"
+                                           x:FieldModifier="internal"
+                                           Style="{StaticResource SettingsHeadingStyle}"
+                                           Text="Translation"
+                                           AutomationProperties.HeadingLevel="Level2" />
+                                <TextBlock Text="German–English translation model" />
+                                <TextBlock Style="{StaticResource SettingsHelperTextStyle}"
+                                           Text="The Opus-MT models translate between German and English on this device." />
+                                <TextBlock Style="{StaticResource SettingsHelperTextStyle}"
+                                           Text="The model is included with WinWispr and runs without network access. There is nothing to download or install." />
+                                <TextBlock x:Name="TranslationStatusHintText"
+                                           x:FieldModifier="internal"
+                                           TextWrapping="Wrap"
+                                           AutomationProperties.LiveSetting="Polite" />
+                                <TextBlock Text="Translate hotkey" />
+                                <Button x:Name="TranslateHotkeyButton"
+                                        x:FieldModifier="internal"
+                                        AutomationProperties.Name="Translate hotkey"
+                                        Content="Ctrl + Alt + E"
+                                        HorizontalAlignment="Left"
+                                        Click="TranslateHotkeyButton_Click" />
+                                <TextBlock x:Name="TranslateHotkeyStatusText"
+                                           x:FieldModifier="internal"
+                                           Style="{StaticResource SettingsHelperTextStyle}"
+                                           TextWrapping="Wrap"
+                                           AutomationProperties.LiveSetting="Polite" />
+                                <TextBlock Style="{StaticResource SettingsHelperTextStyle}"
+                                           TextWrapping="Wrap"
+                                           Text="Select text in any application and press this hotkey. WinWispr detects whether it is German or English, translates it into the other language and shows the result in a preview. Copy puts the translation on the clipboard and Esc closes the preview; your selection is not changed. Your clipboard is restored after the selection is read. Terminology and idioms can be translated wrongly, so check important text. It works only while translation is installed." />
+                                <TextBlock Text="English dictation hotkey" />
+                                <Button x:Name="EnglishDictationHotkeyButton"
+                                        x:FieldModifier="internal"
+                                        AutomationProperties.Name="English dictation hotkey"
+                                        Content="Alt + Shift + E"
+                                        HorizontalAlignment="Left"
+                                        Click="EnglishDictationHotkeyButton_Click" />
+                                <TextBlock x:Name="EnglishDictationHotkeyStatusText"
+                                           x:FieldModifier="internal"
+                                           Style="{StaticResource SettingsHelperTextStyle}"
+                                           TextWrapping="Wrap"
+                                           AutomationProperties.LiveSetting="Polite" />
+                                <TextBlock Text="English dictation mode" />
+                                <ComboBox x:Name="EnglishDictationModeComboBox"
+                                          x:FieldModifier="internal"
+                                          AutomationProperties.Name="English dictation mode"
+                                          SelectedIndex="1"
+                                          SelectionChanged="EnglishDictationModeComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="Toggle" />
+                                    <ComboBoxItem Content="Hold" />
+                                </ComboBox>
+                                <TextBlock Style="{StaticResource SettingsHelperTextStyle}"
+                                           TextWrapping="Wrap"
+                                           Text="Speak German with this hotkey and WinWispr pastes the English translation without a preview. Speech that is already English is pasted unchanged. Terminology and idioms can be translated wrongly, so check important text. It works only while translation is installed." />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </ScrollViewer>
+        </NavigationView>
+    </Grid>
+</Window>

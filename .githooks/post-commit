@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+message="$(git log -1 --format=%B 2>/dev/null || true)"
+subject="${message%%$'\n'*}"
+trailers="$(printf '%s\n' "$message" | sed 's/^BREAKING CHANGE:/BREAKING-CHANGE:/' | git interpret-trailers --parse 2>/dev/null || true)"
+
+needs_release=0
+shopt -s nocasematch
+
+if [[ "$subject" =~ ^(fix|feat)(\([^()]+\))?(!)?:[[:space:]]+[^[:space:]].*$ ]]; then
+    needs_release=1
+fi
+
+if [[ "$subject" =~ ^(fix|feat|docs|test|chore|refactor)(\([^()]+\))?!:[[:space:]]+[^[:space:]].*$ ]]; then
+    needs_release=1
+fi
+
+if [[ "$trailers" == *BREAKING-CHANGE:* ]]; then
+    needs_release=1
+fi
+
+if [ "$needs_release" -eq 1 ]; then
+    echo 'release pending: run ./eng/release-local.sh --dry-run'
+fi
+
+exit 0

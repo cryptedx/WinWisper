@@ -1,0 +1,9 @@
+Voice provenance and license information
+
+Piper voices repository declares MIT in its README metadata (included).
+https://huggingface.co/rhasspy/piper-voices
+The unmodified MODEL_CARD describes dataset licensing, not a separate weight license.
+LJ Speech dataset: public domain.
+Phonemizer data: eSpeak NG, GPL-3.0-or-later; see ESPEAK-LICENSE.txt.
+Source bundle: https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-ljspeech-high.tar.bz2
+Archive SHA-256: 00c6408d2409050312193b0d40ae07fde28af7d3d45a56efcc55440db516b935

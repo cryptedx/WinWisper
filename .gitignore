@@ -1,0 +1,42 @@
+.superpowers/
+.worktrees/
+
+# Generated build and package output
+bin/
+obj/
+.vs/
+*.pfx
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
+*.appinstaller
+artifacts/packages/
+artifacts/portable/
+artifacts/installer/
+artifacts/releases/
+artifacts/release-logs/
+artifacts/runtime-cache/
+artifacts/dev-check/
+artifacts/.vm-control/
+artifacts/model/
+artifacts/models/
+artifacts/sbom/
+
+# Generated native runtime and acceptance fixtures
+src/WinWispr/Runtime/win-x64/
+tests/WinWispr.Tests/TestFiles/
+
+# macOS metadata
+.DS_Store
+
+# Offline TTS release inputs
+artifacts/voices/
+artifacts/translation-model/
+artifacts/voice-downloads/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
+
+# Local issue tracker (see docs/agents/issue-tracker.md)
+.scratch/

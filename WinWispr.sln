@@ -1,0 +1,34 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinWispr", "src\WinWispr\WinWispr.csproj", "{6A48D2D8-3AB9-4E2A-B7B0-5BBF5FD7CFB6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinWispr.Tests", "tests\WinWispr.Tests\WinWispr.Tests.csproj", "{27B56D88-A46A-4B14-9F11-0AF3B95A3B62}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinWispr.SettingsUiAcceptance", "tests\WinWispr.SettingsUiAcceptance\WinWispr.SettingsUiAcceptance.csproj", "{E1946600-6F82-4E43-9547-C2B1D823EAFE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6A48D2D8-3AB9-4E2A-B7B0-5BBF5FD7CFB6}.Debug|x64.ActiveCfg = Debug|x64
+		{6A48D2D8-3AB9-4E2A-B7B0-5BBF5FD7CFB6}.Debug|x64.Build.0 = Debug|x64
+		{6A48D2D8-3AB9-4E2A-B7B0-5BBF5FD7CFB6}.Release|x64.ActiveCfg = Release|x64
+		{6A48D2D8-3AB9-4E2A-B7B0-5BBF5FD7CFB6}.Release|x64.Build.0 = Release|x64
+		{27B56D88-A46A-4B14-9F11-0AF3B95A3B62}.Debug|x64.ActiveCfg = Debug|x64
+		{27B56D88-A46A-4B14-9F11-0AF3B95A3B62}.Debug|x64.Build.0 = Debug|x64
+		{27B56D88-A46A-4B14-9F11-0AF3B95A3B62}.Release|x64.ActiveCfg = Release|x64
+		{27B56D88-A46A-4B14-9F11-0AF3B95A3B62}.Release|x64.Build.0 = Release|x64
+		{E1946600-6F82-4E43-9547-C2B1D823EAFE}.Debug|x64.ActiveCfg = Debug|x64
+		{E1946600-6F82-4E43-9547-C2B1D823EAFE}.Debug|x64.Build.0 = Debug|x64
+		{E1946600-6F82-4E43-9547-C2B1D823EAFE}.Release|x64.ActiveCfg = Release|x64
+		{E1946600-6F82-4E43-9547-C2B1D823EAFE}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

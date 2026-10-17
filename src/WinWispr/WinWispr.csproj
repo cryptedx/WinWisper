@@ -1,0 +1,69 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.22000.0</TargetPlatformMinVersion>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PlatformTarget>x64</PlatformTarget>
+    <Platforms>x64</Platforms>
+    <UseWinUI>true</UseWinUI>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <WindowsPackageType>None</WindowsPackageType>
+    <SelfContained>true</SelfContained>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <PublishSingleFile>false</PublishSingleFile>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WPF" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
+    <PackageReference Include="org.k2fsa.sherpa.onnx"
+                      Version="1.13.5"
+                      ExcludeAssets="native" />
+    <!-- Translation: the managed binding only. It binds to the onnxruntime.dll that Runtime\win-x64 already ships
+         (see OnnxRuntimeBinding); the package carries no native binary. Pinned to the qualified versions. -->
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="[1.24.4]" />
+    <PackageReference Include="Microsoft.ML.Tokenizers" Version="[2.0.0]" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\WinWisprIcon.png"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Assets\WinWisprIcon.ico"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Runtime\win-x64\*.dll"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Runtime\win-x64\runtime.sha256"
+             Condition="Exists('Runtime\win-x64\runtime.sha256')"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Runtime\win-x64\runtime.dependencies.json"
+             Condition="Exists('Runtime\win-x64\runtime.dependencies.json')"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\docs\licenses\*.txt"
+             Link="ThirdPartyLicenses\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\THIRD-PARTY-NOTICES.md"
+             Link="THIRD-PARTY-NOTICES.md"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- "Also ich sage", spoken by the Thorsten voice (CC0 dataset); see ShortDictationLanguage. -->
+    <EmbeddedResource Include="Speech\GermanPrimer.wav" LogicalName="WinWispr.Speech.GermanPrimer.wav" />
+  </ItemGroup>
+
+  <Target Name="CopyProjectPriToPublish" AfterTargets="Publish">
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).pri"
+          DestinationFolder="$(PublishDir)"
+          Condition="Exists('$(TargetDir)$(AssemblyName).pri')"
+          SkipUnchangedFiles="true" />
+  </Target>
+</Project>

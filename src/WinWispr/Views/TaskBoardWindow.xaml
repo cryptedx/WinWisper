@@ -1,0 +1,15 @@
+<Window
+    x:Class="WinWispr.Views.TaskBoardWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="WinWispr Tasks">
+    <Grid x:Name="Root" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.Resources>
+            <DataTemplate x:Key="TaskCardTemplate">
+                <ContentControl x:Name="TaskCardHost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Margin="2,0,2,10"
+                                IsTabStop="False" Loaded="TaskCardHostLoaded"
+                                DataContextChanged="TaskCardHostChanged" />
+            </DataTemplate>
+        </Grid.Resources>
+    </Grid>
+</Window>

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+message_file="${1:-}"
+if [ -z "$message_file" ] || [ ! -f "$message_file" ]; then
+    echo 'usage: commit-msg <message-file>' >&2
+    exit 1
+fi
+
+subject=''
+IFS= read -r subject <"$message_file" || true
+
+shopt -s nocasematch
+pattern='^(fix|feat|docs|test|chore|refactor)(\([^()]+\))?(!)?:[[:space:]]+[^[:space:]].*$'
+if [[ ! "$subject" =~ $pattern ]]; then
+    cat >&2 <<'EOF'
+invalid conventional commit subject
+accepted examples:
+  feat(ui): add shortcut
+  fix: repair shortcut
+  refactor!: change format
+EOF
+    exit 1
+fi

@@ -1,0 +1,97 @@
+{
+  "directions": {
+    "de-en": {
+      "export": {
+        "commit": "399dfd68706739fffd503f876093e455ae268a06",
+        "repo": "Xenova/opus-mt-de-en"
+      },
+      "files": [
+        {
+          "bytes": 49366942,
+          "path": "onnx/encoder_model_quantized.onnx",
+          "sha256": "4cedda8f8c89b72a42b3c6cd1e7a27f2de24457093e3bf80cb3e46829641fcd8"
+        },
+        {
+          "bytes": 56652404,
+          "path": "onnx/decoder_model_merged_quantized.onnx",
+          "sha256": "4712800584b2d77c2f9e620bf29523e2b20b62f65ade5011ee01780e2b0ea5d3"
+        },
+        {
+          "bytes": 796845,
+          "path": "source.spm",
+          "sha256": "bbd1f495eea99c8e21ae086d9146e0fa7b096c3dfdd9ba07ab8b631889df5c9b"
+        },
+        {
+          "bytes": 768489,
+          "path": "target.spm",
+          "sha256": "678f2a1177d8389f67b66299762dcc4fc567e89b07e212ba91b0c56daecf47ce"
+        },
+        {
+          "bytes": 1389436,
+          "path": "vocab.json",
+          "sha256": "d5acea957b265a78554999144459c5e391e0df525864edc8287bc090290baa44"
+        }
+      ],
+      "folder": "opus-mt-de-en",
+      "original": {
+        "commit": "1a922f3b32a8e809e17a47d4b32142d8105924e5",
+        "repo": "Helsinki-NLP/opus-mt-de-en"
+      }
+    },
+    "en-de": {
+      "export": {
+        "commit": "1ca130c44c4c5441ef16d48aae521a424ab644f7",
+        "repo": "Xenova/opus-mt-en-de"
+      },
+      "files": [
+        {
+          "bytes": 49366942,
+          "path": "onnx/encoder_model_quantized.onnx",
+          "sha256": "15834b45fabd2dfb8c6c029b3ca3e7289aeefd90ece798ce42bcf548d1bd3b8d"
+        },
+        {
+          "bytes": 56652404,
+          "path": "onnx/decoder_model_merged_quantized.onnx",
+          "sha256": "8b46a825964cdd182fe47cc780f0fb87d357eae1f47cf20aa63c1c09be5b510c"
+        },
+        {
+          "bytes": 768489,
+          "path": "source.spm",
+          "sha256": "678f2a1177d8389f67b66299762dcc4fc567e89b07e212ba91b0c56daecf47ce"
+        },
+        {
+          "bytes": 796845,
+          "path": "target.spm",
+          "sha256": "bbd1f495eea99c8e21ae086d9146e0fa7b096c3dfdd9ba07ab8b631889df5c9b"
+        },
+        {
+          "bytes": 1389436,
+          "path": "vocab.json",
+          "sha256": "d5acea957b265a78554999144459c5e391e0df525864edc8287bc090290baa44"
+        }
+      ],
+      "folder": "opus-mt-en-de",
+      "original": {
+        "commit": "6183067f769a302e3861815543b9f312c71b0ca4",
+        "repo": "Helsinki-NLP/opus-mt-en-de"
+      }
+    }
+  },
+  "generation": {
+    "decoder_start_token_id": 58100,
+    "eos_token_id": 0,
+    "head_dim": 64,
+    "heads": 8,
+    "hidden": 512,
+    "layers": 6,
+    "max_length_cap": 512,
+    "max_new_tokens": "min(512, ceil(2.0 * source_tokens) + 8)",
+    "pad_token_id": 58100,
+    "unk_token_id": 1,
+    "vocab_size": 58101
+  },
+  "license": "CC-BY-4.0 (upstream statement)",
+  "model_family": "Helsinki-NLP Opus-MT (Marian transformer-base), ONNX int8 dynamic quantization",
+  "name": "opus-mt-int8-v1",
+  "schema": 1
+}
