@@ -3,6 +3,7 @@ using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WinWispr.Audio;
 using WinWispr.Core;
+using WinWispr.Interop;
 using WinWispr.Speech;
 using WinWispr.Translation;
 using WinWispr.Views;
@@ -206,12 +207,75 @@ public sealed class SettingsWindowTests
             Assert.IsTrue(section.Descendants().Any(element => (string?)element.Attribute(x + "Name") == name),
                 $"{name} belongs in the Translation section");
         Assert.AreEqual("Translate hotkey", (string?)Named("TranslateHotkeyButton").Attribute("AutomationProperties.Name"));
-        Assert.AreEqual("Ctrl + Alt + E", (string?)Named("TranslateHotkeyButton").Attribute("Content"));
+        Assert.AreEqual("Alt + Shift + U", (string?)Named("TranslateHotkeyButton").Attribute("Content"));
         Assert.AreEqual("Polite", (string?)Named("TranslateHotkeyStatusText").Attribute("AutomationProperties.LiveSetting"));
         string markup = File.ReadAllText(markupPath);
         StringAssert.Contains(markup, "Select text in any application and press this hotkey");
         StringAssert.Contains(markup, "your selection is not changed");
         StringAssert.Contains(markup, "Terminology and idioms can be translated wrongly");
+    }
+
+    [TestMethod]
+    public void The_replay_hotkey_has_its_own_button_and_status_on_the_dictation_page()
+    {
+        string markupPath = Path.Combine(FindRepositoryRoot(), "src", "WinWispr", "Views", "SettingsWindow.xaml");
+        XDocument document = XDocument.Load(markupPath);
+        XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
+        XElement Named(string name) => document.Descendants().Single(element => (string?)element.Attribute(x + "Name") == name);
+        XElement page = Named("DictationPage");
+
+        foreach (string name in new[] { "ReplayHotkeyButton", "ReplayHotkeyStatusText" })
+            Assert.IsTrue(page.Descendants().Any(element => (string?)element.Attribute(x + "Name") == name),
+                $"{name} belongs on the Dictation page");
+        Assert.AreEqual("Insert again hotkey", (string?)Named("ReplayHotkeyButton").Attribute("AutomationProperties.Name"));
+        Assert.AreEqual("Alt + Shift + V", (string?)Named("ReplayHotkeyButton").Attribute("Content"));
+        string markup = File.ReadAllText(markupPath);
+        StringAssert.Contains(markup, "Click the destination field, then press this hotkey and release the keys.");
+        Assert.IsFalse(markup.Contains("press Ctrl + Alt + V", StringComparison.Ordinal), "the replay hotkey is not fixed any more");
+    }
+
+    [TestMethod]
+    public void A_hotkey_that_blocks_an_altgr_character_says_which_one_and_where()
+    {
+        var translate = new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x45);
+        var clash = new HotkeyCharacterClash("€", "German (Germany)");
+
+        Assert.AreEqual(
+            "Blocks € on the German (Germany) keyboard: Windows reports AltGr + E as Ctrl + Alt + E, so WinWispr takes "
+            + "the key press. Choose another hotkey to type €.",
+            SettingsWindow.HotkeyClashText(translate, clash));
+        Assert.AreEqual(
+            "Blocks Ä on the German (Germany) keyboard: Windows reports AltGr + Shift + E as Ctrl + Alt + Shift + E, so "
+            + "WinWispr takes the key press. Choose another hotkey to type Ä.",
+            SettingsWindow.HotkeyClashText(translate with { Modifiers = translate.Modifiers | HotkeyModifiers.Shift },
+                clash with { Character = "Ä" }));
+    }
+
+    [TestMethod]
+    public void The_startup_notice_names_each_blocking_hotkey_and_fits_a_balloon()
+    {
+        var translate = new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x45);
+        var replay = new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x56);
+        var board = new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x42);
+
+        (string title, string body) = SettingsWindow.HotkeyClashNotice(
+            [("Translate", translate, new HotkeyCharacterClash("€", "German (Germany)"))]);
+        Assert.AreEqual("A WinWispr hotkey blocks €", title);
+        Assert.AreEqual(
+            "Translate (Ctrl + Alt + E) takes AltGr + E, which types € on the German (Germany) keyboard. "
+            + "Click to choose another hotkey.",
+            body);
+
+        (title, body) = SettingsWindow.HotkeyClashNotice(
+        [
+            ("Translate", translate, new HotkeyCharacterClash("€", "Czech (Czechia)")),
+            ("Insert again", replay, new HotkeyCharacterClash("@", "Czech (Czechia)")),
+            ("Task board", board, new HotkeyCharacterClash("{", "Czech (Czechia)"))
+        ]);
+        Assert.AreEqual("WinWispr hotkeys block €, @, {", title);
+        StringAssert.Contains(body, "Insert again (Ctrl + Alt + V) takes AltGr + V, which types @");
+        StringAssert.Contains(body, " 1 more. Click to choose another hotkey.");
+        Assert.IsTrue(title.Length < 64 && body.Length < 256, $"{title.Length} / {body.Length}");
     }
 
     [TestMethod]

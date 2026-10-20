@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WinWispr.Core;
+using WinWispr.Diagnostics;
 using WinWispr.Interop;
 
 namespace WinWispr.Tests.Interop;
@@ -111,31 +112,225 @@ public sealed class WindowsTextOutputTests
     }
 
     [TestMethod]
-    public async Task Paste_waits_until_clipboard_monitors_have_released_the_clipboard()
+    public async Task Paste_waits_until_the_clipboard_has_been_closed_for_the_quiet_window()
     {
         // A monitor that opens the clipboard on every change makes a paste in that moment find it open and paste nothing.
-        int probes = 0;
-        int probesAtPaste = 0;
+        var time = new VirtualTime();
+        TimeSpan? pastedAt = null;
         var output = new WindowsTextOutput(() => 42, _ => Task.CompletedTask,
-            () => { probesAtPaste = probes; return 4; },
-            clipboardFree: () => ++probes > 3);
+            () => { pastedAt = time.Elapsed; return 4; },
+            clipboardState: () => new ClipboardState(time.Elapsed < Ms(40) ? 7 : 0, 1),
+            clock: time,
+            delay: time.Delay);
 
         Assert.AreEqual(DeliveryResult.PasteSent,
             await output.DeliverAsync(new WindowTarget(42), "text", CancellationToken.None));
-        Assert.AreEqual(5, probesAtPaste, "Three busy probes, then two free ones in a row.");
+        Assert.AreEqual(Ms(30) + WindowsTextOutput.ClipboardQuietWindow, pastedAt, "Last seen open at 30 ms.");
+    }
+
+    [TestMethod]
+    public async Task A_monitor_that_opens_the_clipboard_late_still_comes_before_the_paste()
+    {
+        // Ditto, for one, waits about 100 ms after a change before it reads the clipboard.
+        var time = new VirtualTime();
+        TimeSpan? pastedAt = null;
+        var output = new WindowsTextOutput(() => 42, _ => Task.CompletedTask,
+            () => { pastedAt = time.Elapsed; return 4; },
+            clipboardState: () => new ClipboardState(time.Elapsed >= Ms(110) && time.Elapsed < Ms(150) ? 7 : 0, 1),
+            clock: time,
+            delay: time.Delay);
+
+        await output.DeliverAsync(new WindowTarget(42), "text", CancellationToken.None);
+
+        Assert.AreEqual(Ms(140) + WindowsTextOutput.ClipboardQuietWindow, pastedAt);
+    }
+
+    [TestMethod]
+    public async Task A_clipboard_change_by_another_program_restarts_the_wait_and_is_traced()
+    {
+        var time = new VirtualTime();
+        DeliveryTrace trace = DeliveryTrace.Begin();
+        TimeSpan? pastedAt = null;
+        var output = new WindowsTextOutput(() => 42, _ => Task.CompletedTask,
+            () => { pastedAt = time.Elapsed; return 4; },
+            clipboardState: () => new ClipboardState(0, time.Elapsed < Ms(50) ? 1u : 2u),
+            clock: time,
+            delay: time.Delay);
+
+        await output.DeliverAsync(new WindowTarget(42), "text", CancellationToken.None);
+
+        Assert.AreEqual(Ms(50) + WindowsTextOutput.ClipboardQuietWindow, pastedAt);
+        Assert.IsTrue(trace.ClipboardChangedBeforePaste);
     }
 
     [TestMethod]
     public async Task A_clipboard_that_stays_open_falls_back_to_copy_without_a_paste()
     {
+        var time = new VirtualTime();
         bool pasted = false;
         var output = new WindowsTextOutput(() => 42, _ => Task.CompletedTask,
             () => { pasted = true; return 4; },
-            clipboardFree: () => false);
+            clipboardState: () => new ClipboardState(7, 1),
+            clock: time,
+            delay: time.Delay);
 
         Assert.AreEqual(DeliveryResult.CopiedToClipboard,
             await output.DeliverAsync(new WindowTarget(42), "text", CancellationToken.None));
         Assert.IsFalse(pasted);
+        Assert.AreEqual(WindowsTextOutput.ClipboardSettleTimeout, time.Elapsed);
+    }
+
+    [TestMethod]
+    public void A_delivery_gives_up_within_three_seconds_of_its_own()
+    {
+        // Each wait can last a whole 15.6 ms timer tick; the user's own hotkey hold comes on top.
+        TimeSpan tick = TimeSpan.FromMilliseconds(16);
+        TimeSpan settingGivesUp = (WindowsTextOutput.ClipboardOpenAttempts - 1) * Max(WindowsTextOutput.ClipboardRetryInterval, tick);
+        TimeSpan settleGivesUp = WindowsTextOutput.ClipboardSettleTimeout + Max(WindowsTextOutput.ClipboardPollInterval, tick);
+
+        Assert.IsTrue(settingGivesUp + settleGivesUp < TimeSpan.FromSeconds(3), $"{settingGivesUp} + {settleGivesUp}");
+    }
+
+    [TestMethod]
+    public async Task Setting_the_clipboard_retries_only_while_another_program_holds_it_open()
+    {
+        int writes = 0;
+        var delays = new List<TimeSpan>();
+
+        ClipboardSet set = await WindowsTextOutput.SetClipboardAsync(
+            text =>
+            {
+                Assert.AreEqual("dictation", text);
+                return Task.FromResult(++writes < 4 ? null : (uint?)77);
+            },
+            "dictation",
+            (delay, _) => { delays.Add(delay); return Task.CompletedTask; },
+            CancellationToken.None);
+
+        Assert.AreEqual(new ClipboardSet(4, 77), set);
+        CollectionAssert.AreEqual(Enumerable.Repeat(WindowsTextOutput.ClipboardRetryInterval, 3).ToArray(), delays);
+    }
+
+    [TestMethod]
+    public async Task A_set_that_fails_after_opening_the_clipboard_is_never_repeated()
+    {
+        // Setting again would be a second change, which every monitor answers by opening the clipboard again.
+        int writes = 0;
+
+        await Assert.ThrowsExactlyAsync<COMException>(() => WindowsTextOutput.SetClipboardAsync(
+            _ => { writes++; throw new COMException("set failed"); },
+            "dictation",
+            (_, _) => Task.CompletedTask,
+            CancellationToken.None));
+        Assert.AreEqual(1, writes);
+    }
+
+    [TestMethod]
+    public async Task A_clipboard_held_open_through_every_attempt_reports_busy_with_the_attempts()
+    {
+        int writes = 0;
+
+        ClipboardBusyException busy = await Assert.ThrowsExactlyAsync<ClipboardBusyException>(
+            () => WindowsTextOutput.SetClipboardAsync(
+                _ => { writes++; return Task.FromResult<uint?>(null); },
+                "dictation",
+                (_, _) => Task.CompletedTask,
+                CancellationToken.None));
+
+        Assert.AreEqual(WindowsTextOutput.ClipboardOpenAttempts, busy.Attempts);
+        Assert.AreEqual(WindowsTextOutput.ClipboardOpenAttempts, writes);
+    }
+
+    [TestMethod]
+    public async Task Cancellation_stops_the_retries_between_attempts()
+    {
+        using var cancellation = new CancellationTokenSource();
+        int writes = 0;
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() => WindowsTextOutput.SetClipboardAsync(
+            _ => { writes++; cancellation.Cancel(); return Task.FromResult<uint?>(null); },
+            "dictation",
+            Task.Delay,
+            cancellation.Token));
+        Assert.AreEqual(1, writes);
+    }
+
+    [TestMethod]
+    public async Task A_traced_delivery_records_its_attempts_target_paste_and_clipboard_holds()
+    {
+        var time = new VirtualTime();
+        DeliveryTrace trace = DeliveryTrace.Begin();
+        var output = new WindowsTextOutput(() => 42, _ => Task.CompletedTask, () => 4,
+            clipboardState: () => new ClipboardState(time.Elapsed >= Ms(20) && time.Elapsed < Ms(50) ? 7 : 0, 1),
+            clock: time,
+            delay: time.Delay,
+            processOf: window => window == 42 ? "notepad.exe" : "monitor.exe",
+            watchAfterPaste: holds =>
+            {
+                // The target opens the clipboard to paste.
+                holds.Observe(time.GetTimestamp(), 42);
+                time.Advance(Ms(3));
+                return Task.FromResult(holds.Finish(time.GetTimestamp()));
+            });
+
+        Assert.AreEqual(DeliveryResult.PasteSent,
+            await output.DeliverAsync(new WindowTarget(42), "dictation", CancellationToken.None));
+
+        Assert.AreEqual(1, trace.ClipboardSetAttempts);
+        Assert.AreEqual("notepad.exe", trace.TargetProcess);
+        Assert.AreEqual(190, trace.PasteAtMs, "Last seen open at 40 ms, then the quiet window.");
+        Assert.IsFalse(trace.ClipboardChangedBeforePaste);
+        CollectionAssert.AreEqual(
+            new[] { new ClipboardHold("monitor.exe", 20, 30), new ClipboardHold("notepad.exe", 190, 3) },
+            (await trace.ClipboardHolds!).ToArray());
+    }
+
+    [TestMethod]
+    public async Task A_traced_delivery_without_a_paste_keeps_the_holds_seen_while_waiting()
+    {
+        var time = new VirtualTime();
+        DeliveryTrace trace = DeliveryTrace.Begin();
+        var output = new WindowsTextOutput(() => 99, _ => Task.CompletedTask, () => 4,
+            clipboardState: () => new ClipboardState(time.Elapsed < Ms(30) ? 7 : 0, 1),
+            clock: time,
+            delay: time.Delay,
+            processOf: _ => "monitor.exe",
+            watchAfterPaste: _ => throw new AssertFailedException("Nothing is watched without a paste."));
+
+        Assert.AreEqual(DeliveryResult.CopiedToClipboard,
+            await output.DeliverAsync(new WindowTarget(42), "dictation", CancellationToken.None));
+
+        Assert.IsNull(trace.PasteAtMs);
+        CollectionAssert.AreEqual(new[] { new ClipboardHold("monitor.exe", 10, 20) }, (await trace.ClipboardHolds!).ToArray());
+    }
+
+    [TestMethod]
+    public async Task A_traced_delivery_records_the_attempts_of_a_busy_clipboard()
+    {
+        DeliveryTrace trace = DeliveryTrace.Begin();
+        var output = new WindowsTextOutput(() => 42, _ => throw new ClipboardBusyException(60), () => 4);
+
+        await Assert.ThrowsExactlyAsync<ClipboardBusyException>(
+            () => output.DeliverAsync(new WindowTarget(42), "dictation", CancellationToken.None));
+
+        Assert.AreEqual(60, trace.ClipboardSetAttempts);
+        Assert.IsNull(trace.ClipboardHolds);
+    }
+
+    [TestMethod]
+    public async Task An_untraced_delivery_looks_up_no_process_and_watches_nothing()
+    {
+        // A selection translation's delivery is not measured.
+        var time = new VirtualTime();
+        var output = new WindowsTextOutput(() => 42, _ => Task.CompletedTask, () => 4,
+            clipboardState: () => new ClipboardState(time.Elapsed < Ms(30) ? 7 : 0, 1),
+            processOf: _ => throw new AssertFailedException("No process lookup without a trace."),
+            watchAfterPaste: _ => throw new AssertFailedException("No watch without a trace."),
+            clock: time,
+            delay: time.Delay);
+
+        Assert.AreEqual(DeliveryResult.PasteSent,
+            await output.DeliverAsync(new WindowTarget(42), "text", CancellationToken.None));
     }
 
     [TestMethod]
@@ -155,12 +350,11 @@ public sealed class WindowsTextOutputTests
     }
 
     [TestMethod]
-    public void Dictation_clipboard_content_is_not_historic_or_roamable()
+    public void Dictation_clipboard_content_is_kept_out_of_history_roaming_and_monitors()
     {
-        var options = WindowsTextOutput.CreateClipboardOptions();
-
-        Assert.IsFalse(options.IsAllowedInHistory);
-        Assert.IsFalse(options.IsRoamable);
+        CollectionAssert.AreEquivalent(
+            new[] { "CanIncludeInClipboardHistory", "CanUploadToCloudClipboard", "ExcludeClipboardContentFromMonitorProcessing" },
+            NativeClipboard.ExclusionFormats);
     }
 
     [TestMethod]
@@ -319,5 +513,30 @@ public sealed class WindowsTextOutputTests
 
         Assert.AreEqual(DeliveryResult.CopiedToClipboard, result);
         Assert.AreEqual(0, pasteCalls);
+    }
+
+    private static TimeSpan Ms(int milliseconds) => TimeSpan.FromMilliseconds(milliseconds);
+
+    private static TimeSpan Max(TimeSpan first, TimeSpan second) => first > second ? first : second;
+
+    /// <summary>A clock that moves only when the code under test waits, so the waits take no real time.</summary>
+    private sealed class VirtualTime : TimeProvider
+    {
+        private long _ticks;
+
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+
+        public override long GetTimestamp() => _ticks;
+
+        internal TimeSpan Elapsed => TimeSpan.FromTicks(_ticks);
+
+        internal void Advance(TimeSpan duration) => _ticks += duration.Ticks;
+
+        internal Task Delay(TimeSpan duration, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Advance(duration);
+            return Task.CompletedTask;
+        }
     }
 }

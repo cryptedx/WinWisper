@@ -5,13 +5,22 @@ namespace WinWispr.Interop;
 
 internal sealed partial class GlobalInput : IDisposable
 {
-    internal static readonly Hotkey ReplayHotkey = new(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x56);
+    internal bool PrimaryHotkeyAvailable
+    {
+        get
+        {
+            lock (_inputGate)
+                return _activeHotkey is not null;
+        }
+    }
+
     internal bool ReplayHotkeyAvailable { get; private set; }
     internal bool BoardHotkeyAvailable { get; private set; }
     internal bool TaskHotkeyAvailable { get; private set; }
     internal bool EnglishDictationHotkeyAvailable { get; private set; }
     internal bool TranslateHotkeyAvailable { get; private set; }
 
+    private const int ReplayHotkeyId = 2;
     private const int BoardHotkeyId = 3;
     private const int TaskHotkeyId = 4;
     private const int EnglishDictationHotkeyId = 5;
@@ -44,6 +53,7 @@ internal sealed partial class GlobalInput : IDisposable
     private readonly Action<GlobalInputAction> _postAction;
     private readonly object _inputGate = new();
     private Hotkey? _activeHotkey;
+    private Hotkey? _activeReplayHotkey;
     private Hotkey? _activeBoardHotkey;
     private Hotkey? _activeTaskHotkey;
     private Hotkey? _activeEnglishDictationHotkey;
@@ -88,7 +98,8 @@ internal sealed partial class GlobalInput : IDisposable
         Hotkey boardHotkey,
         Hotkey taskHotkey,
         Hotkey englishDictationHotkey = default,
-        Hotkey translateHotkey = default)
+        Hotkey translateHotkey = default,
+        Hotkey replayHotkey = default)
     {
         lock (_inputGate)
         {
@@ -99,18 +110,19 @@ internal sealed partial class GlobalInput : IDisposable
         if (_keyboardHookThread is null && !StartKeyboardHook())
             return false;
 
-        ReplayHotkeyAvailable = hotkey != ReplayHotkey
-            && RegisterHotKey(_messageWindow.Handle, 2, ToNativeModifiers(ReplayHotkey.Modifiers), ReplayHotkey.VirtualKey);
-        BoardHotkeyAvailable = IsUsableOptionalHotkey(boardHotkey, hotkey, ReplayHotkey)
+        ReplayHotkeyAvailable = IsUsableOptionalHotkey(replayHotkey, hotkey)
+            && RegisterHotKey(
+                _messageWindow.Handle, ReplayHotkeyId, ToNativeModifiers(replayHotkey.Modifiers), replayHotkey.VirtualKey);
+        BoardHotkeyAvailable = IsUsableOptionalHotkey(boardHotkey, hotkey, replayHotkey)
             && RegisterHotKey(_messageWindow.Handle, 3, ToNativeModifiers(boardHotkey.Modifiers), boardHotkey.VirtualKey);
-        TaskHotkeyAvailable = IsUsableOptionalHotkey(taskHotkey, hotkey, ReplayHotkey, boardHotkey)
+        TaskHotkeyAvailable = IsUsableOptionalHotkey(taskHotkey, hotkey, replayHotkey, boardHotkey)
             && RegisterHotKey(_messageWindow.Handle, 4, ToNativeModifiers(taskHotkey.Modifiers), taskHotkey.VirtualKey);
-        EnglishDictationHotkeyAvailable = IsUsableOptionalHotkey(englishDictationHotkey, hotkey, ReplayHotkey, boardHotkey, taskHotkey)
+        EnglishDictationHotkeyAvailable = IsUsableOptionalHotkey(englishDictationHotkey, hotkey, replayHotkey, boardHotkey, taskHotkey)
             && RegisterHotKey(
                 _messageWindow.Handle, EnglishDictationHotkeyId,
                 ToNativeModifiers(englishDictationHotkey.Modifiers), englishDictationHotkey.VirtualKey);
         TranslateHotkeyAvailable = IsUsableOptionalHotkey(
-                translateHotkey, hotkey, ReplayHotkey, boardHotkey, taskHotkey, englishDictationHotkey)
+                translateHotkey, hotkey, replayHotkey, boardHotkey, taskHotkey, englishDictationHotkey)
             && RegisterHotKey(
                 _messageWindow.Handle, TranslateHotkeyId,
                 ToNativeModifiers(translateHotkey.Modifiers), translateHotkey.VirtualKey);
@@ -123,6 +135,7 @@ internal sealed partial class GlobalInput : IDisposable
             if (!_disposed)
             {
                 _activeHotkey = primaryRegistered ? hotkey : null;
+                _activeReplayHotkey = ReplayHotkeyAvailable ? replayHotkey : null;
                 _activeBoardHotkey = BoardHotkeyAvailable ? boardHotkey : null;
                 _activeTaskHotkey = TaskHotkeyAvailable ? taskHotkey : null;
                 _activeEnglishDictationHotkey = EnglishDictationHotkeyAvailable ? englishDictationHotkey : null;
@@ -137,7 +150,7 @@ internal sealed partial class GlobalInput : IDisposable
         UnregisterHotKey(_messageWindow.Handle, EnglishDictationHotkeyId);
         UnregisterHotKey(_messageWindow.Handle, 4);
         UnregisterHotKey(_messageWindow.Handle, 3);
-        UnregisterHotKey(_messageWindow.Handle, 2);
+        UnregisterHotKey(_messageWindow.Handle, ReplayHotkeyId);
         ReplayHotkeyAvailable = false;
         BoardHotkeyAvailable = false;
         TaskHotkeyAvailable = false;
@@ -148,13 +161,10 @@ internal sealed partial class GlobalInput : IDisposable
 
     internal bool TryReplace(Hotkey hotkey, Action<Hotkey> persist)
     {
-        if (hotkey == ReplayHotkey)
-            return false;
-
         Hotkey? active;
         lock (_inputGate)
         {
-            if (_disposed)
+            if (_disposed || hotkey == _activeReplayHotkey)
                 return false;
             active = _activeHotkey;
         }
@@ -172,6 +182,9 @@ internal sealed partial class GlobalInput : IDisposable
             _activeHotkey = transaction.Active;
         return replaced;
     }
+
+    internal bool TryReplaceReplay(Hotkey hotkey, Action<Hotkey> persist) =>
+        TryReplaceOptional(hotkey, ReplayHotkeyId, ref _activeReplayHotkey, persist);
 
     internal bool TryReplaceBoard(Hotkey hotkey, Action<Hotkey> persist) =>
         TryReplaceOptional(hotkey, BoardHotkeyId, ref _activeBoardHotkey, persist);
@@ -228,7 +241,7 @@ internal sealed partial class GlobalInput : IDisposable
 
         if (activeHotkey is Hotkey hotkey)
             UnregisterNative(hotkey);
-        UnregisterHotKey(_messageWindow.Handle, 2);
+        UnregisterHotKey(_messageWindow.Handle, ReplayHotkeyId);
         UnregisterHotKey(_messageWindow.Handle, 3);
         UnregisterHotKey(_messageWindow.Handle, 4);
         UnregisterHotKey(_messageWindow.Handle, EnglishDictationHotkeyId);
@@ -250,7 +263,7 @@ internal sealed partial class GlobalInput : IDisposable
                 lock (_inputGate)
                     decision = _capture is not null ? default : wParam switch
                     {
-                        2 => GlobalInputRouter.OnReplayHotkey(_state()),
+                        ReplayHotkeyId => GlobalInputRouter.OnReplayHotkey(_state()),
                         3 => GlobalInputRouter.OnBoardHotkey(),
                         4 => GlobalInputRouter.OnTaskHotkey(),
                         EnglishDictationHotkeyId => GlobalInputRouter.OnEnglishDictationHotkey(),
@@ -396,7 +409,7 @@ internal sealed partial class GlobalInput : IDisposable
         || _activeTaskHotkey?.VirtualKey == virtualKey
         || _activeEnglishDictationHotkey?.VirtualKey == virtualKey
         || _activeTranslateHotkey?.VirtualKey == virtualKey
-        || (ReplayHotkeyAvailable && ReplayHotkey.VirtualKey == virtualKey);
+        || _activeReplayHotkey?.VirtualKey == virtualKey;
 
     private Hotkey?[] RegisteredHotkeys() =>
     [
@@ -405,7 +418,7 @@ internal sealed partial class GlobalInput : IDisposable
         _activeTaskHotkey,
         _activeEnglishDictationHotkey,
         _activeTranslateHotkey,
-        ReplayHotkeyAvailable ? ReplayHotkey : null
+        _activeReplayHotkey
     ];
 
     private void PostAction(GlobalInputAction action)
@@ -542,8 +555,8 @@ internal sealed partial class GlobalInput : IDisposable
         lock (_inputGate)
         {
             if (_disposed || !HotkeyRegistration.IsValid(candidate)
-                || candidate == ReplayHotkey
                 || candidate == _activeHotkey
+                || (id != ReplayHotkeyId && candidate == _activeReplayHotkey)
                 || (id != BoardHotkeyId && candidate == _activeBoardHotkey)
                 || (id != TaskHotkeyId && candidate == _activeTaskHotkey)
                 || (id != EnglishDictationHotkeyId && candidate == _activeEnglishDictationHotkey)
@@ -588,6 +601,9 @@ internal sealed partial class GlobalInput : IDisposable
     {
         switch (id)
         {
+            case ReplayHotkeyId:
+                ReplayHotkeyAvailable = available;
+                break;
             case BoardHotkeyId:
                 BoardHotkeyAvailable = available;
                 break;
@@ -608,11 +624,8 @@ internal sealed partial class GlobalInput : IDisposable
 
     private void UnregisterOptional(Hotkey hotkey, int id) => UnregisterHotKey(_messageWindow.Handle, id);
 
-    private static bool IsUsableOptionalHotkey(Hotkey candidate, Hotkey primary, Hotkey replay, params Hotkey[] others) =>
-        HotkeyRegistration.IsValid(candidate)
-        && candidate != primary
-        && candidate != replay
-        && !others.Contains(candidate);
+    private static bool IsUsableOptionalHotkey(Hotkey candidate, params Hotkey[] others) =>
+        HotkeyRegistration.IsValid(candidate) && !others.Contains(candidate);
 
     private static uint ToNativeModifiers(HotkeyModifiers modifiers)
     {

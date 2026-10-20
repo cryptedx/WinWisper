@@ -50,6 +50,7 @@ public partial class App : Application
     private CancellationTokenSource? _overlayHideCancellation;
     private CancellationTokenSource? _hotkeyCaptureCancellation;
     private bool _hotkeyCaptureCancelRequested;
+    private HotkeyCaptureTarget _hotkeyClashTarget;
     private string? _activeModelDirectory;
     private bool _initialized;
     private bool _pendingSpeechMode;
@@ -167,7 +168,7 @@ public partial class App : Application
         _audio = replayAudio is not null
             ? new AudioCapture(buffer => ReplayCaptureDevice.FromPcm16File(buffer, replayAudio))
             : AudioCapture.CreateNative(_microphoneCatalog, timing: _timings.Record);
-        _textOutput = new WindowsTextOutput(_dispatcher);
+        _textOutput = new WindowsTextOutput();
         _overlay = new OverlayWindow();
         _settingsWindow = new SettingsWindow(_settings.SettingsWindowPlacement);
         _settingsWindow.LoadSettings(_settings);
@@ -227,7 +228,7 @@ public partial class App : Application
 
         // A selection translation is its own coordinator, never a dictation session. It needs the session only to
         // stay out of the way while a dictation is active.
-        var clipboardForSelection = new WindowsSelectionClipboard(_dispatcher);
+        var clipboardForSelection = new WindowsSelectionClipboard();
         var selectionReader = new SelectionReader(
             clipboardForSelection,
             NativeKeyboard.AreModifiersPressed,
@@ -321,23 +322,22 @@ public partial class App : Application
             () => _selection.IsTranslating);
         if (!_globalInput.Start(
                 _settings.Hotkey, _settings.BoardHotkey, _settings.TaskHotkey, _settings.EnglishDictationHotkey,
-                _settings.TranslateHotkey))
+                _settings.TranslateHotkey, _settings.ReplayHotkey))
         {
             _settingsWindow.SetHotkey(_settings.Hotkey);
             _settingsWindow.Activate();
         }
 
-        _settingsWindow.SetReplayHotkeyStatus(_globalInput.ReplayHotkeyAvailable);
-        _settingsWindow.SetTaskHotkeyStatuses(_globalInput.BoardHotkeyAvailable, _globalInput.TaskHotkeyAvailable);
-        _settingsWindow.SetEnglishDictationHotkeyStatus(_globalInput.EnglishDictationHotkeyAvailable);
-        _settingsWindow.SetTranslateHotkeyStatus(_globalInput.TranslateHotkeyAvailable);
+        var hotkeyClashes = RefreshHotkeyStatuses();
 
         _tray = new TrayIcon(
             (command, target) => _dispatcher.TryEnqueue(() => HandleTray(command, target)),
             LoadTrayMicrophonesAsync,
             SelectTrayMicrophone);
         InitializeUpdates();
-        ShowDailySummaryIfNeeded();
+        // One balloon at a time: the daily summary waits for the next hotkey press while the clash notice shows.
+        if (!ShowHotkeyClashNoticeIfNeeded(hotkeyClashes))
+            ShowDailySummaryIfNeeded();
         if (LoadWarnings() is not null)
             _settingsWindow.Activate();
     }
@@ -497,24 +497,23 @@ public partial class App : Application
                     hotkey, value => PersistHotkeySettings(_settings with { EnglishDictationHotkey = value })),
                 HotkeyCaptureTarget.Translate => _globalInput.TryReplaceTranslate(
                     hotkey, value => PersistHotkeySettings(_settings with { TranslateHotkey = value })),
+                HotkeyCaptureTarget.Replay => _globalInput.TryReplaceReplay(
+                    hotkey, value => PersistHotkeySettings(_settings with { ReplayHotkey = value })),
                 _ => _globalInput.TryReplace(hotkey, value => PersistHotkeySettings(_settings with { Hotkey = value }))
             };
             if (replaced)
                 await RunOnUiAsync(() =>
                 {
                     _settingsWindow.CompleteHotkeyCapture(target, SettingsWindow.FormatHotkeyButtonText(hotkey, false));
-                    _settingsWindow.SetTaskHotkeyStatuses(_globalInput.BoardHotkeyAvailable, _globalInput.TaskHotkeyAvailable);
-                    _settingsWindow.SetEnglishDictationHotkeyStatus(_globalInput.EnglishDictationHotkeyAvailable);
-                    _settingsWindow.SetTranslateHotkeyStatus(_globalInput.TranslateHotkeyAvailable);
+                    // The status line shows a clash at once, so the startup notice need not report it again.
+                    RememberHotkeyClashesShown(RefreshHotkeyStatuses());
                 });
             else
                 await RunOnUiAsync(() =>
                 {
                     _settingsWindow.SetHotkey(target, GetHotkey(target));
                     _settingsWindow.SetHotkeyCaptureStatus(SettingsWindow.HotkeyCaptureUnavailableText);
-                    _settingsWindow.SetTaskHotkeyStatuses(_globalInput.BoardHotkeyAvailable, _globalInput.TaskHotkeyAvailable);
-                    _settingsWindow.SetEnglishDictationHotkeyStatus(_globalInput.EnglishDictationHotkeyAvailable);
-                    _settingsWindow.SetTranslateHotkeyStatus(_globalInput.TranslateHotkeyAvailable);
+                    RefreshHotkeyStatuses();
                 });
         }
         finally
@@ -530,8 +529,82 @@ public partial class App : Application
         HotkeyCaptureTarget.Task => _settings.TaskHotkey,
         HotkeyCaptureTarget.EnglishDictation => _settings.EnglishDictationHotkey,
         HotkeyCaptureTarget.Translate => _settings.TranslateHotkey,
+        HotkeyCaptureTarget.Replay => _settings.ReplayHotkey,
         _ => _settings.Hotkey
     };
+
+    private static readonly (HotkeyCaptureTarget Target, string Name)[] HotkeyNames =
+    [
+        (HotkeyCaptureTarget.Primary, "Dictation"),
+        (HotkeyCaptureTarget.Replay, "Insert again"),
+        (HotkeyCaptureTarget.Board, "Task board"),
+        (HotkeyCaptureTarget.Task, "Task dictation"),
+        (HotkeyCaptureTarget.EnglishDictation, "English dictation"),
+        (HotkeyCaptureTarget.Translate, "Translate")
+    ];
+
+    private bool IsHotkeyAvailable(HotkeyCaptureTarget target) => target switch
+    {
+        HotkeyCaptureTarget.Board => _globalInput.BoardHotkeyAvailable,
+        HotkeyCaptureTarget.Task => _globalInput.TaskHotkeyAvailable,
+        HotkeyCaptureTarget.EnglishDictation => _globalInput.EnglishDictationHotkeyAvailable,
+        HotkeyCaptureTarget.Translate => _globalInput.TranslateHotkeyAvailable,
+        HotkeyCaptureTarget.Replay => _globalInput.ReplayHotkeyAvailable,
+        _ => _globalInput.PrimaryHotkeyAvailable
+    };
+
+    /// <summary>
+    /// Shows every hotkey's status in Settings, a registered Ctrl+Alt hotkey that blocks an AltGr character on an
+    /// installed keyboard layout included, and returns those clashes.
+    /// </summary>
+    private List<(HotkeyCaptureTarget Target, string Name, Hotkey Hotkey, HotkeyCharacterClash Clash)> RefreshHotkeyStatuses()
+    {
+        IReadOnlyList<KeyboardLayout> layouts = KeyboardLayout.Installed();
+        var clashes = new List<(HotkeyCaptureTarget, string, Hotkey, HotkeyCharacterClash)>();
+        foreach ((HotkeyCaptureTarget target, string name) in HotkeyNames)
+        {
+            Hotkey hotkey = GetHotkey(target);
+            bool available = IsHotkeyAvailable(target);
+            HotkeyCharacterClash? clash = available ? KeyboardLayout.FindClash(hotkey, layouts) : null;
+            _settingsWindow.SetHotkeyStatus(target, available, hotkey, clash);
+            if (clash is HotkeyCharacterClash blocked)
+                clashes.Add((target, name, hotkey, blocked));
+        }
+        return clashes;
+    }
+
+    private static string[] HotkeyClashKeys(
+        IEnumerable<(HotkeyCaptureTarget Target, string Name, Hotkey Hotkey, HotkeyCharacterClash Clash)> clashes) =>
+        [.. clashes.Select(clash =>
+            $"{(int)clash.Hotkey.Modifiers}+{clash.Hotkey.VirtualKey}:{clash.Clash.Character}:{clash.Clash.LayoutName}")];
+
+    private void RememberHotkeyClashesShown(
+        IEnumerable<(HotkeyCaptureTarget Target, string Name, Hotkey Hotkey, HotkeyCharacterClash Clash)> clashes)
+    {
+        string shown = string.Join('\n', HotkeyClashKeys(clashes).Union(
+            _settings.HotkeyClashesShown.Split('\n', StringSplitOptions.RemoveEmptyEntries)).Order(StringComparer.Ordinal));
+        if (shown != _settings.HotkeyClashesShown)
+            TrySaveSettings(_settings with { HotkeyClashesShown = shown });
+    }
+
+    /// <summary>
+    /// Tells the user once, in a tray balloon, about registered hotkeys that block an AltGr character, such as a stored
+    /// Ctrl + Alt + E on a German keyboard (AltGr + E types €). Returns whether the balloon shows.
+    /// </summary>
+    private bool ShowHotkeyClashNoticeIfNeeded(
+        List<(HotkeyCaptureTarget Target, string Name, Hotkey Hotkey, HotkeyCharacterClash Clash)> clashes)
+    {
+        string[] shown = _settings.HotkeyClashesShown.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        if (HotkeyClashKeys(clashes).All(shown.Contains))
+            return false;
+        (string title, string body) = SettingsWindow.HotkeyClashNotice(
+            [.. clashes.Select(clash => (clash.Name, clash.Hotkey, clash.Clash))]);
+        if (!_tray.ShowNotice(title, body, TrayCommand.HotkeyClash, warning: true))
+            return false;
+        _hotkeyClashTarget = clashes[0].Target;
+        RememberHotkeyClashesShown(clashes);
+        return true;
+    }
 
     private void CancelHotkeyCapture()
     {
@@ -622,6 +695,10 @@ public partial class App : Application
                 break;
             case TrayCommand.Update:
                 _ = RequestUpdateAsync(fromTray: true);
+                break;
+            case TrayCommand.HotkeyClash:
+                _settingsWindow.SetTranslationState(_translationModel.State);
+                _settingsWindow.ShowHotkey(_hotkeyClashTarget);
                 break;
             case TrayCommand.Exit:
                 Shutdown();

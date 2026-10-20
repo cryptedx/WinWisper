@@ -82,4 +82,7 @@ Terms the code, tests, issues and reviews use for WinWispr concepts. Use them ex
 : The user's phrase = replacement entries, applied to every transcript. It is user data, not a preference: it lives in its own file (`settings.json.dictionary` with a `.bak`), independent of `settings.json`, and must survive updates, settings resets and settings load failures. `PersonalDictionaryStore` owns the file; `PersonalDictionary` is the parsed value the dictation session applies.
 
 **Settings**
-: The user's preferences in `settings.json`: hotkeys, modes, microphone, speech mode and window placement. `AppSettingsStore` saves the whole record; a settings failure never blocks or rewrites the personal dictionary.
+: The user's preferences in `settings.json`: hotkeys, modes, microphone, speech mode and window placement. `AppSettingsStore` saves the whole record; a settings failure never blocks or rewrites the personal dictionary. A new installation gets `Shift+Alt` hotkeys; a settings file that lacks a hotkey keeps the one WinWispr 1.11 used.
+
+**Hotkey clash**
+: A registered `Ctrl+Alt` hotkey whose key types a character with AltGr on an installed keyboard layout. Windows reports AltGr as `Ctrl+Alt`, so the hotkey takes the key press and the character cannot be typed, such as `€` behind `Ctrl+Alt+E` on a German keyboard. Settings marks the hotkey, and the startup notice reports each clash once.

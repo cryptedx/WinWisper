@@ -14,7 +14,10 @@ internal enum TrayCommand
     TranslateClipboard = 6,
 
     /// <summary>Checks for an update, or installs the one already found.</summary>
-    Update = 7
+    Update = 7,
+
+    /// <summary>Opens Settings at a hotkey that blocks an AltGr character.</summary>
+    HotkeyClash = 8
 }
 
 /// <summary>The commands of the tray menu below the microphone choice, in order, with their labels.</summary>

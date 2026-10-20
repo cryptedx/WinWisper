@@ -37,8 +37,8 @@ private key exists only in the build VM's user certificate store.
 | Translation model | `TranslationData\` in the installation folder: the ten verified Opus-MT translation files of both directions (German to English, English to German), read in place | Installed by the WinWispr Models installer and removed by its uninstaller, which uninstalling WinWispr runs first; Setup leaves it in place. WinWispr never writes to it. If a file is missing or has the wrong size, Settings reports the model as not installed and running the Models installer restores it. A copy in `%LOCALAPPDATA%\WinWispr\TranslationModels\` that an earlier version downloaded is no longer used and is deleted on the first start with the bundled model. |
 | Audio | Captured in memory and passed to the local speech runtime; normal completion creates a `float[]` sample array for recognition | Cancel and shutdown discard the capture buffer; after normal recognition the sample array becomes eligible for garbage collection, with no explicit zeroing or timing guarantee. The application does not write captured audio files. |
 | Recognized text | Sent to the Windows clipboard and, when the foreground window remains unchanged, pasted into that window | No WinWispr transcript/history store. Clipboard contents and any destination application's retention are controlled by Windows and that application. |
-| Translated text | Selected text, clipboard text and dictation transcripts are translated in memory by the local translation model; the source and the translation are shown in the preview or pasted. The text is not stored, logged or sent to any service. | No WinWispr store. The translation (and, for a failed dictation translation, the German transcript) can stay on the clipboard, excluded from Windows clipboard history and roaming; the application you copy a selection from may record its own copy in clipboard history. |
-| Technical logs | `%LOCALAPPDATA%\WinWispr\Logs\*.jsonl`: timestamp, event type, state, exception type, HRESULT, duration, delivery result | Entries older than 7 days are removed; total retained log size is capped at 1 MiB. Exception messages are not written. |
+| Translated text | Selected text, clipboard text and dictation transcripts are translated in memory by the local translation model; the source and the translation are shown in the preview or pasted. The text is not stored, logged or sent to any service. | No WinWispr store. The translation (and, for a failed dictation translation, the German transcript) can stay on the clipboard, excluded from Windows clipboard history and roaming and marked for clipboard monitors to skip; the application you copy a selection from may record its own copy in clipboard history. |
+| Technical logs | `%LOCALAPPDATA%\WinWispr\Logs\*.jsonl`: timestamp, event type, state, exception type, HRESULT, duration, delivery result; for a dictation delivery also the clipboard set attempts, the program file name (such as `notepad.exe`) of the target window and of up to ten programs that held the clipboard open from the set until about a second after `Ctrl+V`, with millisecond offsets | Entries older than 7 days are removed; total retained log size is capped at 1 MiB. Exception messages, text, window titles and paths are not written. |
 | Release evidence | Local `artifacts/releases/vX.Y.Z/` during a local release | Retained by the release owner under the organization's evidence-retention policy; the directory is ignored by Git. |
 
 No application audio archive, transcript history, clipboard history, account
@@ -65,13 +65,18 @@ for build output plus
   The dictation stays in the clipboard after the paste, replacing the previous
   clipboard content, so it can be pasted again if the destination did not accept
   it. Windows does not acknowledge whether the destination accepted the paste.
-  WinWispr excludes this clipboard entry from Windows clipboard history and roaming.
+  WinWispr excludes this clipboard entry from Windows clipboard history and roaming
+  and adds the `ExcludeClipboardContentFromMonitorProcessing` format, so clipboard
+  managers and monitors that honor this Windows convention skip it. Programs that
+  ignore it, such as some security agents, still read it.
 - **Selection translation:** the translate hotkey makes WinWispr inject a
   `Ctrl+C` into the foreground application, after the hotkey's modifier keys are
   released, to copy the selection to the Windows clipboard. WinWispr saves the
   previous clipboard (text, HTML, RTF, bitmap, files and web link; application-private
   formats cannot be saved), reads the copied text and restores the previous
-  clipboard. Replace re-activates the window the selection came from and sends
+  clipboard in one step, excluded from Windows clipboard history and roaming and
+  marked with `ExcludeClipboardContentFromMonitorProcessing` like a dictation.
+  Replace re-activates the window the selection came from and sends
   `Ctrl+V`, like a dictation. **Translate clipboard** in the tray reads the
   clipboard without changing it. None of this text leaves the machine, and failures
   are logged by kind and exception type only, never with text. Endpoint owners who

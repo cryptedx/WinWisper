@@ -205,6 +205,11 @@ The default suite covers selection translation without a clipboard, window or mo
   hotkey's modifier keys, a selection equal to the current clipboard text, nothing selected, several clipboard writes
   for one copy, and the restore of the previous clipboard on success, nothing selected, a copy without text, cancel and
   failure.
+- `WindowsSelectionClipboardTests` drives the Windows side of that clipboard against a fake Win32 clipboard: the
+  formats a capture asks for, a restore that puts every captured format back in one set and in the clipboard's order,
+  only the first of the two DIBs,
+  an empty clipboard emptied again, a clipboard with nothing restorable left alone, retries only while the clipboard is
+  held open (never after a failed set), and the text read up to its first NUL.
 - `GlobalInputTests`, `AppSettingsStoreTests`, `SettingsWindowTests`, `DictationNoticePresentationTests`,
   `TranslationPreviewTests` and `TranslatorLoadStatusTests` cover the hotkey registration and conflicts, Esc during a
   translation, the default and fallback of the stored hotkey, the Settings markup, the notice mapping, the preview
@@ -213,7 +218,8 @@ The default suite covers selection translation without a clipboard, window or mo
 The real clipboard, the Ctrl+C injection, focus handling and the preview window need the interactive desktop session of
 the installed app (the release workflow), with the translation model installed:
 
-1. Select German text in Notepad and press `Ctrl + Alt + E`: the preview shows "DE → EN" at the overlay position and
+1. Select German text in Notepad and press the translate hotkey (`Shift + Alt + U` in a new installation,
+   `Ctrl + Alt + E` in one from before 1.12): the preview shows "DE → EN" at the overlay position and
    takes focus. `Ctrl+C` or **Copy** puts the English text on the clipboard; `Esc`, **Cancel** or a click elsewhere
    closes it. The selection in Notepad is unchanged.
 2. Put text A on the clipboard, select text B and translate: after the preview closes with Cancel the clipboard still
@@ -300,9 +306,9 @@ appear" or "board is hidden" timeouts, the task board E2E included. The harness 
 reports as held, before it starts the app and again after each scenario. When it finds held keys at the start, it lists
 them in the runner output.
 
-The scenarios use the default translate (`Ctrl+Alt+E`) and English dictation (`Shift+Alt+E`) hotkeys. A running
-installed WinWispr holds the same chords (a deployment or release run starts it), and the E2E app then cannot register
-them. Each scenario therefore first checks that both chords are free, and fails at once with the running WinWispr
+The scenarios use the default translate (`Shift+Alt+U`) and English dictation (`Shift+Alt+E`) hotkeys. A running
+installed WinWispr can hold the same chords (a deployment or release run starts it), and the E2E app then cannot
+register them. Each scenario therefore first checks that both chords are free, and fails at once with the running WinWispr
 processes otherwise. Close the installed app from the tray before the run and start it again afterwards.
 
 **Result of the run on windows-vm, 2026-10-05** (Windows 11 ARM64 with x64 emulated, working tree on top of commit
@@ -367,7 +373,7 @@ of every line below in this table (PASS or FAIL with a short note, application a
 
 | Application | Check | Outcome |
 | --- | --- | --- |
-| Notepad (plain text editor) | Select German text, press `Ctrl + Alt + E`: the preview shows "DE → EN"; **Replace** puts the English text in place of the selection; `Ctrl+Z` undoes it; the clipboard held the English text after Replace | Not run |
+| Notepad (plain text editor) | Select German text, press the translate hotkey: the preview shows "DE → EN"; **Replace** puts the English text in place of the selection; `Ctrl+Z` undoes it; the clipboard held the English text after Replace | Not run |
 | Notepad | Clipboard restore: copy text A, select text B, translate, press `Esc`: `Ctrl+V` pastes A | Not run |
 | Word processor or mail client (Word, Outlook, Thunderbird) | Select German text in the body, translate, Replace: the text is replaced as plain text; `Ctrl+Z` undoes it; select a bold word and confirm the formatting is not kept | Not run |
 | Browser text field (a `textarea` on a web page) | Select German text, translate, Replace: the field now holds the English text | Not run |
@@ -418,6 +424,117 @@ mask, which the hook thread then sends behind the burst; the hook therefore send
 one has passed it. With that, the `Shift+Alt` burst pasted 2 of 2 in Notepad++ and 1 of 2 in Windows 11 Notepad
 (unmasked: 0 of 2 each); the `Ctrl+Alt` burst pasted even unmasked. A complete fix would hold back Alt's release and
 send it again after the mask, which risks a stuck Alt key, so the test only records bursts.
+
+### AltGr characters and Ctrl+Alt hotkeys
+
+Windows reports AltGr as `Ctrl+Alt`: a keyboard's right Alt arrives together with a left Ctrl that Windows adds on
+layouts with AltGr. `RegisterHotKey` cannot tell the two apart, so a `Ctrl+Alt` hotkey catches AltGr plus its key, and
+the character never reaches the application. Up to 1.11 the default translate hotkey `Ctrl+Alt+E` blocked `€` on
+German keyboards; `Ctrl+Alt+V` (paste again) blocks `@` and `Ctrl+Alt+B` (task board) blocks `{` on Czech and
+Hungarian ones. New installations therefore get `Shift+Alt` hotkeys, which type nothing on any layout. Existing
+installations keep their hotkeys, and Settings marks each one that blocks a character on an installed layout
+(`KeyboardLayout.FindClash`, which asks `ToUnicodeEx` without changing the keyboard state).
+
+`KeyboardLayoutTests` covers the check with fake layouts and against the installed German layout; `AppSettingsStoreTests`
+covers the defaults of a new installation and the 1.11 hotkeys of an existing settings file.
+`AltGrHotkeyTests` (`WindowsAcceptance`) types AltGr+Q, E, M, 7 and 0 (`@ € µ { }`) on the German layout into a text
+box, pressing right Alt like a keyboard (extended key with its scan code), in three runs: nothing registered (control),
+the 1.11 defaults, and the current defaults, each registered through `GlobalInput`. The control run and the current
+defaults must type every character without a WinWispr hotkey press (a release is posted for every key-up of a hotkey's
+key, a typed letter's too, and does not count), the test is inconclusive if the 1.11 defaults swallow nothing, and the
+clash check must name exactly the hotkeys whose characters the 1.11 run swallowed. The installed
+WinWispr holds some of the same chords; the tests close it for the run and start it again afterwards, through Explorer
+as its logon entry would (directly if Explorer does not), and also when it was not running but its logon entry starts
+it.
+
+```bash
+./eng/deploy-windows-vm.sh --check --test-filter 'FullyQualifiedName~AltGrHotkeyTests'
+ssh windows-vm 'Get-Content -Encoding UTF8 $env:TEMP\winwispr-altgr-evidence.txt'
+```
+
+Evidence on windows-vm, 2026-10-20 (layout `0x04070407`; Windows added the left Ctrl to every injected right Alt): the
+control run typed `@ € µ { }`. With the 1.11 defaults, AltGr+E typed nothing and reached WinWispr as one translate press;
+the other four characters arrived. With the current defaults all five arrived without a hotkey press, and the clash check
+named only AltGr+E. Before the fix the same test failed on the defaults of that time with that single loss.
+
+`The_real_application_reports_a_stored_ctrl_alt_e_once_at_startup` (`WindowsAcceptance`, in the same class) starts the
+real application with `Ctrl+Alt+E` stored as the translate hotkey, as a 1.11 installation has it, and checks that the
+startup notice records the clash in `settings.json` (`HotkeyClashesShown`), so it shows only once. On windows-vm,
+2026-10-20, the application recorded `3+69:€:German (Germany)`. A first run failed because the installed WinWispr,
+which the previous test had started again, took `Ctrl+Alt+E` before the application did; the tests now always close a
+running installed WinWispr and wait until it runs again afterwards. The notice itself then kept the foreground from the
+next run's text box: Windows keeps a notification on screen while the user is idle, and the shared desktop has no user,
+so every run left one more. The real-application test therefore closes WinWispr's notifications through their close
+button (UI Automation, `DismissButton`) before it ends; the probe does the same while a notification holds the
+foreground, taps the unassigned key `0xE8` so that Windows counts the desktop as active, and clicks into its text box if
+a notification still keeps the foreground. Notifications of other programs stay.
+
+### Clipboard set under clipboard monitors
+
+Security agents and clipboard managers open the clipboard on every change, and a target whose paste finds it open
+pastes nothing. WinWispr puts a dictation on the clipboard from a thread of its own whose message-only window owns
+the content: one `OpenClipboard`, `EmptyClipboard`, `SetClipboardData` for `CF_UNICODETEXT` and for the three
+exclusion formats (`ExcludeClipboardContentFromMonitorProcessing`, `CanIncludeInClipboardHistory` = 0,
+`CanUploadToCloudClipboard` = 0), `CloseClipboard`. Only opening the clipboard is retried (60 times, 10 ms apart);
+the text is never set twice. Before `Ctrl+V` the delivery waits until `GetOpenClipboardWindow` has reported no open
+window and `GetClipboardSequenceNumber` has stayed the same for 150 ms, for at most 1.5 s, without opening the
+clipboard itself. The WinRT set it replaces (`SetContentWithOptions`, then `Flush`) changed the clipboard twice: a
+monitor answered the first change by opening the clipboard, which refused the `Flush`, and the whole set was retried
+with a new package.
+
+A selection translation's restore of the previous clipboard takes the same path. The capture copies, in one
+`OpenClipboard` that changes nothing, the memory blocks of the Win32 formats behind WinRT's standard formats:
+`CF_UNICODETEXT` (Text), `HTML Format` (Html), `Rich Text Format` (Rtf), one DIB (Bitmap), `CF_HDROP` and `Shell IDList Array` (StorageItems; the shell's item list also holds items without a file path) and
+`UniformResourceLocatorW` (WebLink), in the clipboard's order. Each is a self-contained memory block, so a byte copy is
+the content. The restore puts them back with the three exclusion formats in one set from the selection clipboard's own
+owner thread; a clipboard that was empty is emptied in one open. Capture, text read and restore retry only
+`OpenClipboard`, like the dictation's set. The virtual-file formats WinRT's `SetStorageItems` also writes
+(`FileGroupDescriptorW`, `FileContents`) are not copied: `FileContents` is a stream per file, not one memory block, and
+the two file formats above carry the same files.
+
+Of the bitmap only the DIB that comes first in the clipboard's order is kept: the one the program put there, or
+`CF_DIB` when it put `CF_BITMAP` (as WinRT does), since Windows lists derived formats after the ones put there. Windows
+derives the other DIB and `CF_BITMAP` from it again. Keeping a derived `CF_DIBV5` broke the bitmap: the `CF_DIBV5` that
+Windows derives from `CF_BITMAP` repeats the three color masks after its 124-byte header (a 2x1 bitmap is 144 bytes, not
+132), and once that block was put back, Windows read it by the format's definition and took the masks for pixels. The
+first run of the round trip below showed it: of a red and a blue pixel, blue came back green.
+
+Evidence on windows-vm, 2026-10-20, one build: `NativeClipboardTests`, `WindowsSelectionClipboardTests`,
+`SelectionReaderTests` and `WindowsTextOutputTests` 66 of 66; the full deterministic `--check` 692 of 692;
+`TranslationEndToEndTests` 6 of 6, with the previous clipboard back after Cancel and the read of every selection, and
+warm selections at the limit shown 1.47 to 1.74 s after the hotkey.
+
+`DeliveryCompleted` in the technical log records the set attempts, the target's program file name, the paste offset
+and the windows that held the clipboard open from the set until about a second after `Ctrl+V`, checked about every
+millisecond after the paste. A program that opens the clipboard without a window, or for less than a check's step,
+is not seen; Windows 11 Notepad's own read for the paste never showed up, so a missing target hold does not mean a
+lost paste.
+
+Two test classes cover it:
+
+- `NativeClipboardTests` (`WindowsAcceptance`, replaces the desktop clipboard): one set is exactly one
+  `WM_CLIPBOARDUPDATE` and carries the text and the three exclusion formats; a set waits for a program that holds the
+  clipboard open; another program empties the clipboard without waiting for the owner thread; the state check and the
+  watch see a window that holds the clipboard open and name its process. For the selection clipboard: a WinRT package
+  with text, HTML, RTF, a two-pixel bitmap, a file and a web link is captured, replaced by a dictation and restored as
+  exactly one `WM_CLIPBOARDUPDATE`, after which WinRT reads the same six values as before and the exclusion formats are
+  present; a bitmap a program put as a `CF_DIBV5` comes back byte for byte and with the same pixels; an empty clipboard
+  is emptied again as one change.
+- `PasteDeliveryEndToEndTests` (see above): the monitor case dictates four times into Windows 11 Notepad while a
+  message-only window reads every clipboard change and holds the clipboard open for 150 ms.
+
+```bash
+./eng/deploy-windows-vm.sh --check --test-filter 'FullyQualifiedName~NativeClipboardTests|FullyQualifiedName~PasteDeliveryEndToEndTests'
+```
+
+Evidence on windows-vm, 2026-10-20, three runs of `PasteDeliveryEndToEndTests` on one build: every dictation was
+pasted (24 of 24), each set on the first attempt. Under the monitor, the monitor read the clipboard once per
+dictation, a delivery took 298 to 380 ms, `Ctrl+V` followed the set by 283 to 328 ms, and the monitor's hold was
+logged at 9 to 25 ms for 131 to 164 ms. Three runs of the same test with the WinRT set earlier that day: the monitor
+read the clipboard up to 8 times per dictation, as each repeated set changed it again; deliveries took 0.2 to 1.4 s;
+one ended in `ClipboardUnavailable`, and one reported `PasteSent` while nothing arrived in Notepad. Without a monitor
+(the `Shift+Alt` case) a delivery took 162 to 209 ms against 65 to 97 ms with the WinRT set: the quiet window costs
+about 100 ms per paste. Twice `svchost.exe` held the clipboard for 2 to 3 ms about 40 ms after `Ctrl+V`.
 
 ### Translation acceptance (the Translator on the real model)
 

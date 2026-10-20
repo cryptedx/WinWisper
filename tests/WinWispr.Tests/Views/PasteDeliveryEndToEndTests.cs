@@ -23,6 +23,7 @@ public sealed class PasteDeliveryEndToEndTests
 {
     private const int Dictations = 4;
     private static readonly TimeSpan MonitorHold = TimeSpan.FromMilliseconds(150);
+    private static readonly TimeSpan DeliveryLogged = TimeSpan.FromMilliseconds(1500);
 
     // Shift+Alt+Q: the installed WinWispr holds Shift+Alt+X on the test machine.
     private static readonly Hotkey ShiftAltHotkey = new(HotkeyModifiers.Shift | HotkeyModifiers.Alt, 0x51);
@@ -64,7 +65,8 @@ public sealed class PasteDeliveryEndToEndTests
                     Thread.Sleep(speaking);
                     ui.ReleaseHotkey(DictationEndToEndTests.PrimaryHotkey, "release the primary hotkey");
                     DictationEndToEndTests.WaitForIdle(ui, "dictation returns to idle");
-                    Thread.Sleep(1000);
+                    // DeliveryCompleted is written once the clipboard watch, a second after Ctrl+V, is over.
+                    Thread.Sleep(DeliveryLogged);
                     outcomes.Add($"#{dictation} monitor reads={monitor.Reads - reads} "
                         + $"delivery={LastDeliveryResult(root)} pasted={notepad.HasText}");
                 }
@@ -124,7 +126,8 @@ public sealed class PasteDeliveryEndToEndTests
                     Thread.Sleep(speaking);
                     PressShiftAltReleasingAltFirst();
                     DictationEndToEndTests.WaitForIdle(ui, "dictation returns to idle");
-                    Thread.Sleep(1000);
+                    // DeliveryCompleted is written once the clipboard watch, a second after Ctrl+V, is over.
+                    Thread.Sleep(DeliveryLogged);
                     outcomes.Add($"#{dictation} delivery={LastDeliveryResult(root)} pasted={notepad.HasText}");
                 }
             },

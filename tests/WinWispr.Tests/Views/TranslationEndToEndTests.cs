@@ -408,8 +408,8 @@ public sealed class TranslationEndToEndTests
     private static Settings ReadSettings(string root)
     {
         AppSettings settings = new AppSettingsStore(Path.Combine(root, "settings.json")).Load();
-        Assert.AreEqual(new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x45), settings.TranslateHotkey,
-            "The E2E profile must use the default translate hotkey (Ctrl+Alt+E).");
+        Assert.AreEqual(new Hotkey(HotkeyModifiers.Shift | HotkeyModifiers.Alt, 0x55), settings.TranslateHotkey,
+            "The E2E profile must use the default translate hotkey (Shift+Alt+U).");
         Assert.AreEqual(new Hotkey(HotkeyModifiers.Shift | HotkeyModifiers.Alt, 0x45), settings.EnglishDictationHotkey,
             "The E2E profile must use the default English dictation hotkey (Shift+Alt+E).");
         return new Settings(settings.Hotkey, settings.TranslateHotkey, settings.EnglishDictationHotkey);

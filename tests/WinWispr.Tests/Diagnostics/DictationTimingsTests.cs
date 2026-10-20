@@ -95,6 +95,67 @@ public sealed class DictationTimingsTests
             entries.Select(entry => entry.Event).ToArray());
         Assert.AreEqual("PasteSent", entries[1].DeliveryResult);
         Assert.AreEqual(12, entries[1].Duration);
+        Assert.IsNull(entries[1].Delivery, "A delivery that recorded nothing writes no details.");
+    }
+
+    [TestMethod]
+    public async Task Delivery_details_are_written_once_the_watch_after_the_paste_is_over()
+    {
+        using var root = new TemporaryDirectory();
+        var clock = new ManualClock();
+        var (timings, log) = Create(root, clock);
+        var watch = new TaskCompletionSource<IReadOnlyList<ClipboardHold>>();
+        DictationEffects effects = timings.Wrap(Effects(deliver: (_, _, _) =>
+        {
+            DeliveryTrace trace = DeliveryTrace.Current!;
+            trace.ClipboardSetAttempts = 2;
+            trace.TargetProcess = "notepad.exe";
+            trace.PasteAtMs = 160;
+            trace.ClipboardHolds = watch.Task;
+            clock.Advance(TimeSpan.FromMilliseconds(170));
+            return Task.FromResult(DeliveryResult.PasteSent);
+        }));
+
+        await effects.DeliverAsync(new WindowTarget(1), "SECRET_TRANSCRIPT_SENTINEL", CancellationToken.None);
+        DateTimeOffset completedAt = clock.GetUtcNow();
+        Entry[] whileWatching = await ReadAsync(root, log);
+        clock.Advance(TimeSpan.FromSeconds(1));
+        watch.SetResult([new ClipboardHold("Ditto.exe", 100, 25), new ClipboardHold("notepad.exe", 162, 2)]);
+        Entry[] entries = await ReadAsync(root, log);
+
+        CollectionAssert.AreEqual(new[] { "DeliveryStarted" }, whileWatching.Select(entry => entry.Event).ToArray());
+        Entry completed = entries.Single(entry => entry.Event == "DeliveryCompleted");
+        Assert.AreEqual(completedAt, completed.Timestamp);
+        Assert.AreEqual(170, completed.Duration);
+        JsonElement delivery = completed.Delivery!.Value;
+        Assert.AreEqual(2, delivery.GetProperty("ClipboardSetAttempts").GetInt32());
+        Assert.AreEqual("notepad.exe", delivery.GetProperty("TargetProcess").GetString());
+        Assert.AreEqual(160, delivery.GetProperty("PasteAtMs").GetInt32());
+        Assert.IsFalse(delivery.GetProperty("ClipboardChangedBeforePaste").GetBoolean());
+        Assert.AreEqual(
+            """[{"Process":"Ditto.exe","AtMs":100,"ForMs":25},{"Process":"notepad.exe","AtMs":162,"ForMs":2}]""",
+            delivery.GetProperty("ClipboardHolds").GetRawText());
+        Assert.IsFalse(
+            string.Concat(Directory.GetFiles(root.Path).Select(File.ReadAllText)).Contains("SECRET_TRANSCRIPT_SENTINEL", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public async Task A_failed_watch_still_writes_the_delivery_details()
+    {
+        using var root = new TemporaryDirectory();
+        var (timings, log) = Create(root, new ManualClock());
+        DictationEffects effects = timings.Wrap(Effects(deliver: (_, _, _) =>
+        {
+            DeliveryTrace.Current!.ClipboardSetAttempts = 1;
+            DeliveryTrace.Current!.ClipboardHolds = Task.FromException<IReadOnlyList<ClipboardHold>>(new InvalidOperationException());
+            return Task.FromResult(DeliveryResult.PasteSent);
+        }));
+
+        await effects.DeliverAsync(new WindowTarget(1), "text", CancellationToken.None);
+
+        JsonElement delivery = (await ReadAsync(root, log)).Single(entry => entry.Event == "DeliveryCompleted").Delivery!.Value;
+        Assert.AreEqual(1, delivery.GetProperty("ClipboardSetAttempts").GetInt32());
+        Assert.AreEqual(JsonValueKind.Null, delivery.GetProperty("ClipboardHolds").ValueKind);
     }
 
     [TestMethod]
@@ -250,7 +311,9 @@ public sealed class DictationTimingsTests
                     Text(entry, "DeliveryResult"),
                     entry.GetProperty("DurationMilliseconds").ValueKind == JsonValueKind.Number
                         ? entry.GetProperty("DurationMilliseconds").GetDouble()
-                        : null);
+                        : null,
+                    entry.GetProperty("Timestamp").GetDateTimeOffset(),
+                    entry.TryGetProperty("Delivery", out JsonElement delivery) ? delivery.Clone() : null);
             })
             .ToArray();
     }
@@ -263,7 +326,9 @@ public sealed class DictationTimingsTests
         string? RecordingState,
         string? ExceptionType,
         string? DeliveryResult,
-        double? Duration);
+        double? Duration,
+        DateTimeOffset Timestamp,
+        JsonElement? Delivery);
 
     private sealed class ManualClock : TimeProvider
     {

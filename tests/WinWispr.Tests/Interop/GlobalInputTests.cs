@@ -87,9 +87,10 @@ public sealed class GlobalInputTests
         Hotkey board = new(modifiers, 0x81);
         Hotkey task = new(modifiers, 0x82);
         Hotkey english = new(modifiers, 0x83);
+        Hotkey replay = new(modifiers, 0x97);
         using var input = new GlobalInput(() => RecordingState.Idle, _ => { });
 
-        Assert.IsTrue(input.Start(primary, board, task, english));
+        Assert.IsTrue(input.Start(primary, board, task, english, replayHotkey: replay));
         Assert.IsTrue(input.EnglishDictationHotkeyAvailable);
 
         // A chord that another WinWispr hotkey uses is refused, in both directions, and nothing is persisted.
@@ -97,7 +98,7 @@ public sealed class GlobalInputTests
         Assert.IsFalse(input.TryReplaceEnglishDictation(task, persisted.Add));
         Assert.IsFalse(input.TryReplaceEnglishDictation(board, persisted.Add));
         Assert.IsFalse(input.TryReplaceEnglishDictation(primary, persisted.Add));
-        Assert.IsFalse(input.TryReplaceEnglishDictation(GlobalInput.ReplayHotkey, persisted.Add));
+        Assert.IsFalse(input.TryReplaceEnglishDictation(replay, persisted.Add));
         Assert.IsFalse(input.TryReplaceTask(english, persisted.Add));
         Assert.IsFalse(input.TryReplaceBoard(english, persisted.Add));
         Assert.AreEqual(0, persisted.Count);
@@ -193,9 +194,10 @@ public sealed class GlobalInputTests
         Hotkey task = new(modifiers, 0x8A);
         Hotkey english = new(modifiers, 0x8B);
         Hotkey translate = new(modifiers, 0x8C);
+        Hotkey replay = new(modifiers, 0x98);
         using var input = new GlobalInput(() => RecordingState.Idle, _ => { });
 
-        Assert.IsTrue(input.Start(primary, board, task, english, translate));
+        Assert.IsTrue(input.Start(primary, board, task, english, translate, replay));
         Assert.IsTrue(input.TranslateHotkeyAvailable);
 
         var persisted = new List<Hotkey>();
@@ -203,7 +205,7 @@ public sealed class GlobalInputTests
         Assert.IsFalse(input.TryReplaceTranslate(board, persisted.Add));
         Assert.IsFalse(input.TryReplaceTranslate(english, persisted.Add));
         Assert.IsFalse(input.TryReplaceTranslate(primary, persisted.Add));
-        Assert.IsFalse(input.TryReplaceTranslate(GlobalInput.ReplayHotkey, persisted.Add));
+        Assert.IsFalse(input.TryReplaceTranslate(replay, persisted.Add));
         Assert.IsFalse(input.TryReplaceTask(translate, persisted.Add));
         Assert.IsFalse(input.TryReplaceBoard(translate, persisted.Add));
         Assert.IsFalse(input.TryReplaceEnglishDictation(translate, persisted.Add));
@@ -215,6 +217,50 @@ public sealed class GlobalInputTests
         CollectionAssert.AreEqual(new[] { replacement }, persisted);
         Assert.IsTrue(input.TranslateHotkeyAvailable);
         Assert.IsTrue(input.TryReplaceTask(translate, _ => { }), "The old chord is free again.");
+    }
+
+    [TestMethod]
+    public void The_replay_hotkey_is_registered_with_the_others_and_moves_like_them()
+    {
+        const HotkeyModifiers modifiers = HotkeyModifiers.Control | HotkeyModifiers.Alt | HotkeyModifiers.Shift;
+        Hotkey primary = new(modifiers, 0x99);
+        Hotkey board = new(modifiers, 0x9A);
+        Hotkey translate = new(modifiers, 0x9B);
+        Hotkey replay = new(modifiers, 0x9C);
+        using var input = new GlobalInput(() => RecordingState.Idle, _ => { });
+
+        Assert.IsTrue(input.Start(primary, board, default, default, translate, replay));
+        Assert.IsTrue(input.ReplayHotkeyAvailable);
+
+        // No other hotkey can take the replay chord, and the replay hotkey takes no other hotkey's chord.
+        var persisted = new List<Hotkey>();
+        Assert.IsFalse(input.TryReplace(replay, persisted.Add));
+        Assert.IsFalse(input.TryReplaceBoard(replay, persisted.Add));
+        Assert.IsFalse(input.TryReplaceTranslate(replay, persisted.Add));
+        Assert.IsFalse(input.TryReplaceReplay(primary, persisted.Add));
+        Assert.IsFalse(input.TryReplaceReplay(board, persisted.Add));
+        Assert.IsFalse(input.TryReplaceReplay(translate, persisted.Add));
+        Assert.AreEqual(0, persisted.Count);
+        Assert.IsTrue(input.ReplayHotkeyAvailable, "A refused replacement keeps the registered hotkey.");
+
+        Hotkey replacement = new(modifiers, 0x9D);
+        Assert.IsTrue(input.TryReplaceReplay(replacement, persisted.Add));
+        CollectionAssert.AreEqual(new[] { replacement }, persisted);
+        Assert.IsTrue(input.ReplayHotkeyAvailable);
+        Assert.IsFalse(input.TryReplaceTranslate(replacement, _ => { }), "The new replay chord is taken.");
+        Assert.IsTrue(input.TryReplaceTranslate(replay, _ => { }), "The old chord is free again.");
+    }
+
+    [TestMethod]
+    public void Without_a_replay_hotkey_nothing_is_registered_for_it()
+    {
+        const HotkeyModifiers modifiers = HotkeyModifiers.Control | HotkeyModifiers.Alt | HotkeyModifiers.Shift;
+        using var input = new GlobalInput(() => RecordingState.Idle, _ => { });
+
+        Assert.IsTrue(input.Start(new Hotkey(modifiers, 0x9E)));
+
+        Assert.IsTrue(input.PrimaryHotkeyAvailable);
+        Assert.IsFalse(input.ReplayHotkeyAvailable);
     }
 
     [TestMethod]

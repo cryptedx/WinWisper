@@ -83,16 +83,35 @@ internal sealed record AppSettings(
     Hotkey EnglishDictationHotkey = default,
     RecordingMode EnglishDictationMode = RecordingMode.Hold,
     Hotkey TranslateHotkey = default,
-    bool AutomaticUpdateChecks = true)
+    bool AutomaticUpdateChecks = true,
+    Hotkey ReplayHotkey = default,
+    string HotkeyClashesShown = "")
 {
+    /// <summary>
+    /// The settings of a new installation. Every default hotkey is Shift+Alt: Windows reports AltGr as Ctrl+Alt, so a
+    /// Ctrl+Alt hotkey catches AltGr plus its key, and the character it types (€ is AltGr+E on German keyboards).
+    /// </summary>
     internal static AppSettings Default => new(
         RecordingMode.Toggle,
         new Hotkey(HotkeyModifiers.Shift | HotkeyModifiers.Alt, 0x58),
         null,
-        BoardHotkey: new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x42),
-        TaskHotkey: new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x54),
+        BoardHotkey: new Hotkey(HotkeyModifiers.Shift | HotkeyModifiers.Alt, 0x42),
+        TaskHotkey: new Hotkey(HotkeyModifiers.Shift | HotkeyModifiers.Alt, 0x54),
         EnglishDictationHotkey: new Hotkey(HotkeyModifiers.Shift | HotkeyModifiers.Alt, 0x45),
-        TranslateHotkey: new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x45));
+        TranslateHotkey: new Hotkey(HotkeyModifiers.Shift | HotkeyModifiers.Alt, 0x55),
+        ReplayHotkey: new Hotkey(HotkeyModifiers.Shift | HotkeyModifiers.Alt, 0x56));
+
+    /// <summary>
+    /// The hotkeys up to WinWispr 1.11. A settings file that lacks a hotkey, or holds an invalid one, was written by an
+    /// installation that used these, so it keeps them; the replay hotkey was fixed then and never stored.
+    /// </summary>
+    internal static AppSettings ExistingInstallationDefaults => Default with
+    {
+        BoardHotkey = new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x42),
+        TaskHotkey = new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x54),
+        TranslateHotkey = new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x45),
+        ReplayHotkey = new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x56)
+    };
 }
 
 internal enum SettingsSaveStatus
@@ -147,9 +166,11 @@ internal sealed class AppSettingsStore(string path)
         }
         if (!_canSave)
             LoadWarning = "Settings could not be read. Your files are preserved and saving is disabled. Restore settings.json from a backup and restart WinWispr.";
-        return AppSettings.Default;
+        // Only a missing file and a missing backup mean a new installation; unreadable files keep the hotkeys of 1.11.
+        return _canSave ? AppSettings.Default : AppSettings.ExistingInstallationDefaults;
     }
 
+    /// <summary>Reads an existing file; a value it lacks or cannot hold falls back to <see cref="AppSettings.ExistingInstallationDefaults"/>.</summary>
     internal static AppSettings Parse(string json)
     {
         using JsonDocument document = JsonDocument.Parse(json);
@@ -161,7 +182,7 @@ internal sealed class AppSettingsStore(string path)
             try { return root.TryGetProperty(name, out var value) ? value.Deserialize<T>()! : fallback; }
             catch (JsonException) { return fallback; }
         }
-        AppSettings defaults = AppSettings.Default;
+        AppSettings defaults = AppSettings.ExistingInstallationDefaults;
         RecordingMode mode = Read("Mode", defaults.Mode);
         Hotkey hotkey = Read("Hotkey", defaults.Hotkey);
         Hotkey boardHotkey = Read("BoardHotkey", defaults.BoardHotkey);
@@ -169,6 +190,7 @@ internal sealed class AppSettingsStore(string path)
         Hotkey englishDictationHotkey = Read("EnglishDictationHotkey", defaults.EnglishDictationHotkey);
         RecordingMode englishDictationMode = Read("EnglishDictationMode", defaults.EnglishDictationMode);
         Hotkey translateHotkey = Read("TranslateHotkey", defaults.TranslateHotkey);
+        Hotkey replayHotkey = Read("ReplayHotkey", defaults.ReplayHotkey);
         string? microphone = Read<string?>("MicrophoneId", null);
         SpeechMode speech = Read("SpeechMode", SpeechMode.Automatic);
         const HotkeyModifiers allModifiers = HotkeyModifiers.Alt | HotkeyModifiers.Control
@@ -192,7 +214,9 @@ internal sealed class AppSettingsStore(string path)
             IsStoredHotkeyValid(englishDictationHotkey) ? englishDictationHotkey : defaults.EnglishDictationHotkey,
             Enum.IsDefined(englishDictationMode) ? englishDictationMode : defaults.EnglishDictationMode,
             IsStoredHotkeyValid(translateHotkey) ? translateHotkey : defaults.TranslateHotkey,
-            Read("AutomaticUpdateChecks", defaults.AutomaticUpdateChecks));
+            Read("AutomaticUpdateChecks", defaults.AutomaticUpdateChecks),
+            IsStoredHotkeyValid(replayHotkey) ? replayHotkey : defaults.ReplayHotkey,
+            Read<string?>("HotkeyClashesShown", null) ?? "");
     }
 
     private static bool IsStoredHotkeyValid(Hotkey hotkey) =>

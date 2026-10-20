@@ -94,6 +94,7 @@ internal sealed class DictationTimings
     {
         Mark(TechnicalEvent.DeliveryStarted);
         long started = _clock.GetTimestamp();
+        DeliveryTrace trace = DeliveryTrace.Begin();
         DeliveryResult? result = null;
         try
         {
@@ -110,12 +111,37 @@ internal sealed class DictationTimings
         }
         finally
         {
-            _ = _log.WriteAsync(
-                TechnicalEvent.DeliveryCompleted,
-                durationMilliseconds: Elapsed(started),
-                occurredAtUtc: _clock.GetUtcNow(),
-                deliveryResult: result);
+            _ = WriteDeliveryCompletedAsync(trace, result, Elapsed(started), _clock.GetUtcNow());
         }
+    }
+
+    // After a Ctrl+V the trace watches the clipboard for about a second more, so the entry is written once that is
+    // over, still stamped with the moment the delivery completed.
+    private async Task WriteDeliveryCompletedAsync(
+        DeliveryTrace trace,
+        DeliveryResult? result,
+        double milliseconds,
+        DateTimeOffset completedAt)
+    {
+        IReadOnlyList<ClipboardHold>? holds = null;
+        if (trace.ClipboardHolds is { } watch)
+        {
+            try
+            {
+                holds = await watch.ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                // The entry is still written, without the holds.
+            }
+        }
+
+        _ = _log.WriteAsync(
+            TechnicalEvent.DeliveryCompleted,
+            durationMilliseconds: milliseconds,
+            occurredAtUtc: completedAt,
+            deliveryResult: result,
+            delivery: trace.ToDiagnostics(holds));
     }
 
     private void Mark(TechnicalEvent phase) =>

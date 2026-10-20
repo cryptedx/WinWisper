@@ -9,6 +9,14 @@ not tamper-proof until copied to controlled storage and externally signed.
 
 ### Added
 
+- The hotkey that pastes the last result again can be changed in **Settings →
+  Dictation** like the other hotkeys; it was fixed to `Ctrl + Alt + V`.
+- Settings marks a hotkey that blocks a character AltGr types on one of the
+  installed keyboard layouts, for example *Blocks € on the German (Germany)
+  keyboard*. At startup, WinWispr reports such a hotkey once in a tray
+  notification; clicking it opens that hotkey in Settings. The check asks
+  Windows (`ToUnicodeEx`) what AltGr, with and without Shift, types with the
+  hotkey's key on each layout, and changes no keyboard state.
 - Update check: 30 seconds after start and every 24 hours WinWispr anonymously
   reads the latest GitHub release of `cryptedx/WinWisper` (tags `vX.Y.Z` only,
   never `models-vN`); **Check for updates** in the tray menu and on the
@@ -29,6 +37,13 @@ not tamper-proof until copied to controlled storage and externally signed.
 
 ### Changed
 
+- New installations get hotkeys without `Ctrl + Alt`: translate the selection
+  `Shift + Alt + U` (was `Ctrl + Alt + E`), task board `Shift + Alt + B`, task
+  dictation `Shift + Alt + T` and paste again `Shift + Alt + V`. Dictation
+  (`Shift + Alt + X`) and English dictation (`Shift + Alt + E`) are unchanged.
+  Existing installations keep every hotkey they have: a settings file that does
+  not store a hotkey keeps its 1.11 default, so paste again stays
+  `Ctrl + Alt + V` there.
 - The models left Setup and Portable. The speech model, the translation model
   and the offline voices ship in the new **WinWispr Models** installer
   (`WinWispr-Models-vN.exe`), published as its own GitHub release `models-vN`
@@ -177,6 +192,50 @@ not tamper-proof until copied to controlled storage and externally signed.
 
 ### Fixed
 
+- On German keyboards, `€` could not be typed while WinWispr ran. Windows
+  reports AltGr as `Ctrl + Alt`, so the default translate hotkey
+  `Ctrl + Alt + E` caught AltGr + E and started a translation instead. The same
+  applies to any `Ctrl + Alt` hotkey whose key types a character with AltGr,
+  such as `Ctrl + Alt + V` (`@`) and `Ctrl + Alt + B` (`{`) on Czech and
+  Hungarian keyboards. The new defaults use `Shift + Alt`; existing hotkeys
+  that block a character are marked in Settings and reported once at startup.
+- With a clipboard monitor running (a security agent or a clipboard manager),
+  putting a dictation on the clipboard could take over a second and, rarely,
+  failed with *Automatic paste unavailable*. WinWispr set the clipboard in two
+  steps, each a change that the monitor answered by opening the clipboard, so
+  the second step was refused and the whole set repeated. WinWispr now puts the
+  dictation on the clipboard in a single step from a thread of its own, retries
+  only while another program holds the clipboard open, and never sets the
+  dictation twice. Before `Ctrl+V` it waits until the clipboard has been closed
+  and unchanged for 150 ms (previously two checks about 50 ms in all), so a
+  monitor that reads a moment after the change, as Ditto does after about
+  100 ms, is done before the paste; it now checks without opening the
+  clipboard itself. Every delivery still gives up within three seconds. The
+  dictation is also marked with Windows' `ExcludeClipboardContentFromMonitorProcessing`
+  format, so clipboard managers that honor it skip it, in addition to staying
+  out of Windows clipboard history and roaming.
+- A selection translation put the previous clipboard back in the same two
+  steps, so with a clipboard monitor running the second step could be refused
+  and was not retried: the restored clipboard then lasted only while WinWispr
+  ran, or the copied selection stayed on the clipboard. WinWispr now saves the
+  previous clipboard as exact copies of its Windows formats (`CF_UNICODETEXT`,
+  `HTML Format`, `Rich Text Format`, the bitmap as the DIB the program put
+  there, files as `CF_HDROP` and `Shell IDList Array`, and the
+  `UniformResourceLocatorW` web link, the formats behind the text, HTML, RTF,
+  bitmap, files and web link it saved before) and puts them back in a
+  single step from a thread of its own, out of Windows clipboard history and
+  roaming and marked for clipboard monitors to skip, as a dictation is. Saving,
+  reading the copied text and restoring now retry only opening the clipboard,
+  each for up to about 0.6 s (before: about 0.1 s for saving and reading, no
+  retry for the restore), and the restore is never repeated. None of them waits
+  for WinWispr's UI thread any more.
+- The technical log's `DeliveryCompleted` entry now shows why a paste may not
+  have landed, without any text: how many attempts setting the clipboard took,
+  the target window's program file name (such as `notepad.exe`), when `Ctrl+V`
+  was sent, whether another program changed the clipboard before it, and which
+  programs held the clipboard open from the set until about a second after
+  `Ctrl+V`, with millisecond offsets. The entry is written once that second is
+  over.
 - Dictations were still sometimes not pasted although the caret stayed in the
   text box, without any notice. The default dictation hotkey `Shift+Alt+X`
   contains Alt, and Windows swallows the press of `X` but passes Alt to the

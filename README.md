@@ -15,10 +15,10 @@ Website: [cryptedx.github.io/WinWisper](https://cryptedx.github.io/WinWisper/)
 - **Dictation into any app.** Press or hold `Shift + Alt + X`, speak, and the
   transcript is pasted into the window you were typing in.
 - **Offline German ↔ English translation.** Select text and press
-  `Ctrl + Alt + E` for a translation preview, or hold `Shift + Alt + E` to speak
+  `Shift + Alt + U` for a translation preview, or hold `Shift + Alt + E` to speak
   German and get English text.
 - **Task board.** A To Do → Doing → Done board with tags, due dates, search and
-  Markdown descriptions. Dictate a task with `Ctrl + Alt + T`; it opens as a
+  Markdown descriptions. Dictate a task with `Shift + Alt + T`; it opens as a
   preview and is saved only after you review it.
 - **Personal dictionary and voice commands.** Fix recurring recognition errors
   and dictate paragraphs, line breaks and bullet points.
@@ -131,13 +131,25 @@ yourself when one appears.
 | Action | Default hotkey |
 | --- | --- |
 | Dictate | `Shift + Alt + X` |
-| Translate the selection | `Ctrl + Alt + E` |
+| Translate the selection | `Shift + Alt + U` |
 | Dictate German as English | `Shift + Alt + E` |
-| Paste the last result again | `Ctrl + Alt + V` |
-| Open the task board | `Ctrl + Alt + B` |
-| Dictate a task | `Ctrl + Alt + T` |
+| Paste the last result again | `Shift + Alt + V` |
+| Open the task board | `Shift + Alt + B` |
+| Dictate a task | `Shift + Alt + T` |
 
-All hotkeys can be changed in **Settings**. The tray menu provides
+All hotkeys can be changed in **Settings**. These are the defaults of a new
+installation. Installations from before 1.12 keep the hotkeys they had:
+`Ctrl + Alt + E` for translation, `Ctrl + Alt + V` to paste again,
+`Ctrl + Alt + B` for the board and `Ctrl + Alt + T` for a task.
+
+Windows reports AltGr as `Ctrl + Alt`, so a `Ctrl + Alt` hotkey also catches the
+character AltGr types with its key: on a German keyboard, `Ctrl + Alt + E`
+blocks `€` (AltGr + E). Settings marks every hotkey that blocks a character on
+one of your keyboard layouts, and at startup WinWispr reports such a hotkey once
+in a tray notification; clicking it opens the hotkey in Settings. The defaults
+use `Shift + Alt`, which types nothing on any layout.
+
+The tray menu provides
 **Settings**, **Start/Stop**, **Translate clipboard**, **Task board**,
 **Check for updates**, and **Exit**.
 
@@ -153,7 +165,7 @@ All hotkeys can be changed in **Settings**. The tray menu provides
 The result stays on the clipboard after pasting. When WinWispr cannot paste,
 it shows *Automatic paste unavailable* and you paste with `Ctrl + V`; if the
 window's menu was open, press `Esc` first. If a paste does not land, click the
-target field and press `Ctrl + Alt + V`. The last result is kept in memory only
+target field and press `Shift + Alt + V`. The last result is kept in memory only
 until WinWispr exits.
 
 **Personal dictionary.** In **Settings → Dictation text**, add one
@@ -169,7 +181,7 @@ formatting.
 Both translation flows run fully offline and are designed to finish within
 three seconds.
 
-- **Selection translation:** select text in any app and press `Ctrl + Alt + E`.
+- **Selection translation:** select text in any app and press `Shift + Alt + U`.
   WinWispr detects whether it is German or English and shows the translation in
   a preview. **Replace** (`Enter`) pastes it over the selection, **Copy**
   (`Ctrl + C`) puts it on the clipboard, **Cancel** (`Esc`) closes the preview,
@@ -184,7 +196,7 @@ Check important text: terminology and idioms can be translated wrongly.
 
 ### Task board
 
-Open the board with `Ctrl + Alt + B` or from the tray menu. Tasks have titles,
+Open the board with `Shift + Alt + B` or from the tray menu. Tasks have titles,
 Markdown descriptions, tags and due dates, and can be searched, filtered,
 sorted, dragged between columns, archived and restored. Dictating a task never
 pastes into another app; it opens a preview, and the task is saved only after

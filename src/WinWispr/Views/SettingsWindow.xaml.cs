@@ -9,6 +9,7 @@ using Windows.System;
 using WinWispr.Audio;
 using WinWispr.Core;
 using WinWispr.Core.Updates;
+using WinWispr.Interop;
 using WinWispr.Speech;
 using WinWispr.Translation;
 using WinRT.Interop;
@@ -42,7 +43,8 @@ internal enum HotkeyCaptureTarget
     Board,
     Task,
     EnglishDictation,
-    Translate
+    Translate,
+    Replay
 }
 
 internal sealed partial class SettingsWindow : Window
@@ -131,6 +133,7 @@ internal sealed partial class SettingsWindow : Window
         SetHotkey(HotkeyCaptureTarget.Task, settings.TaskHotkey);
         SetHotkey(HotkeyCaptureTarget.EnglishDictation, settings.EnglishDictationHotkey);
         SetHotkey(HotkeyCaptureTarget.Translate, settings.TranslateHotkey);
+        SetHotkey(HotkeyCaptureTarget.Replay, settings.ReplayHotkey);
         EnglishDictationModeComboBox.SelectedIndex = settings.EnglishDictationMode == RecordingMode.Toggle ? 0 : 1;
         ModeComboBox.SelectedIndex = settings.Mode == RecordingMode.Toggle ? 0 : 1;
         TaskHotkeyModeComboBox.SelectedIndex = settings.TaskHotkeyMode == RecordingMode.Toggle ? 0 : 1;
@@ -508,6 +511,9 @@ internal sealed partial class SettingsWindow : Window
     private void TranslateHotkeyButton_Click(object sender, RoutedEventArgs args) =>
         HotkeyCaptureRequested?.Invoke(HotkeyCaptureTarget.Translate);
 
+    private void ReplayHotkeyButton_Click(object sender, RoutedEventArgs args) =>
+        HotkeyCaptureRequested?.Invoke(HotkeyCaptureTarget.Replay);
+
     private void CancelHotkeyButton_Click(object sender, RoutedEventArgs args) => HotkeyCaptureCancelRequested?.Invoke();
 
     private void FocusHotkeyCaptureButton() => GetHotkeyButton(_hotkeyCaptureTarget).Focus(FocusState.Programmatic);
@@ -518,32 +524,78 @@ internal sealed partial class SettingsWindow : Window
         HotkeyCaptureTarget.Task => TaskHotkeyButton,
         HotkeyCaptureTarget.EnglishDictation => EnglishDictationHotkeyButton,
         HotkeyCaptureTarget.Translate => TranslateHotkeyButton,
+        HotkeyCaptureTarget.Replay => ReplayHotkeyButton,
         _ => HotkeyButton
     };
 
-    internal void SetReplayHotkeyStatus(bool available) =>
-        ReplayHotkeyStatusText.Text = available
-            ? "Ctrl + Alt + V"
-            : "Ctrl + Alt + V is unavailable. Free this shortcut in the other app (or change the recording shortcut), then restart WinWispr.";
-
-    internal void SetTaskHotkeyStatuses(bool boardAvailable, bool taskAvailable)
+    private TextBlock GetHotkeyStatusText(HotkeyCaptureTarget target) => target switch
     {
-        BoardHotkeyStatusText.Text = boardAvailable
-            ? "Available"
-            : "Unavailable. Choose another shortcut or free it in the other app.";
-        TaskHotkeyStatusText.Text = taskAvailable
-            ? "Available"
-            : "Unavailable. Choose another shortcut or free it in the other app.";
-    }
+        HotkeyCaptureTarget.Board => BoardHotkeyStatusText,
+        HotkeyCaptureTarget.Task => TaskHotkeyStatusText,
+        HotkeyCaptureTarget.EnglishDictation => EnglishDictationHotkeyStatusText,
+        HotkeyCaptureTarget.Translate => TranslateHotkeyStatusText,
+        HotkeyCaptureTarget.Replay => ReplayHotkeyStatusText,
+        _ => HotkeyStatusText
+    };
 
     internal const string HotkeyAvailableText = "Available";
     internal const string HotkeyUnavailableText = "Unavailable. Choose another shortcut or free it in the other app.";
 
-    internal void SetEnglishDictationHotkeyStatus(bool available) =>
-        EnglishDictationHotkeyStatusText.Text = available ? HotkeyAvailableText : HotkeyUnavailableText;
+    /// <summary>
+    /// Shows whether the hotkey is registered and, when it is, whether it blocks a character that AltGr types. The
+    /// dictation hotkey shows nothing while it is registered and blocks nothing.
+    /// </summary>
+    internal void SetHotkeyStatus(HotkeyCaptureTarget target, bool available, Hotkey hotkey, HotkeyCharacterClash? clash)
+    {
+        TextBlock status = GetHotkeyStatusText(target);
+        status.Text = !available ? HotkeyUnavailableText
+            : clash is HotkeyCharacterClash blocked ? HotkeyClashText(hotkey, blocked)
+            : target == HotkeyCaptureTarget.Primary ? string.Empty
+            : HotkeyAvailableText;
+        status.Visibility = status.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+    }
 
-    internal void SetTranslateHotkeyStatus(bool available) =>
-        TranslateHotkeyStatusText.Text = available ? HotkeyAvailableText : HotkeyUnavailableText;
+    internal static string HotkeyClashText(Hotkey hotkey, HotkeyCharacterClash clash) =>
+        $"Blocks {clash.Character} on the {clash.LayoutName} keyboard: Windows reports {FormatAltGrChord(hotkey)} as "
+        + $"{FormatHotkey(hotkey)}, so WinWispr takes the key press. Choose another hotkey to type {clash.Character}.";
+
+    /// <summary>The hotkeys that block an AltGr character, for the tray notice at startup.</summary>
+    internal static (string Title, string Body) HotkeyClashNotice(
+        IReadOnlyList<(string Name, Hotkey Hotkey, HotkeyCharacterClash Clash)> clashes)
+    {
+        string[] characters = [.. clashes.Select(clash => clash.Clash.Character).Distinct()];
+        string title = clashes.Count == 1
+            ? $"A WinWispr hotkey blocks {characters[0]}"
+            : $"WinWispr hotkeys block {string.Join(", ", characters)}";
+        // A balloon holds 255 characters.
+        string body = string.Join(" ", clashes.Take(2).Select(clash =>
+                $"{clash.Name} ({FormatHotkey(clash.Hotkey)}) takes {FormatAltGrChord(clash.Hotkey)}, which types "
+                + $"{clash.Clash.Character} on the {clash.Clash.LayoutName} keyboard."))
+            + (clashes.Count > 2 ? $" {clashes.Count - 2} more." : "")
+            + " Click to choose another hotkey.";
+        return (title, body);
+    }
+
+    private static string FormatAltGrChord(Hotkey hotkey) =>
+        ((hotkey.Modifiers & HotkeyModifiers.Shift) != 0 ? "AltGr + Shift + " : "AltGr + ")
+        + FormatVirtualKey(hotkey.VirtualKey);
+
+    /// <summary>Opens the page that holds the hotkey and moves the focus to its button.</summary>
+    internal void ShowHotkey(HotkeyCaptureTarget target)
+    {
+        SettingsNavigation.SelectedItem = target switch
+        {
+            HotkeyCaptureTarget.Replay => DictationNavItem,
+            HotkeyCaptureTarget.Board or HotkeyCaptureTarget.Task => TaskBoardNavItem,
+            HotkeyCaptureTarget.EnglishDictation or HotkeyCaptureTarget.Translate => TranslationNavItem,
+            _ => GeneralNavItem
+        };
+        PageScrollViewer.UpdateLayout();
+        Button button = GetHotkeyButton(target);
+        button.StartBringIntoView();
+        Activate();
+        button.Focus(FocusState.Programmatic);
+    }
 
     /// <summary>Shows the update state; <paramref name="policyDisabled"/> locks the section for a managed machine.</summary>
     internal void SetUpdateStatus(string status, string buttonText, bool buttonEnabled, bool policyDisabled)

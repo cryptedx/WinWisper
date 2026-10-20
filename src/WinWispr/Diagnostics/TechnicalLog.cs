@@ -65,7 +65,19 @@ internal sealed record TechnicalLogEntry(
     string? ExceptionType,
     int? HResult,
     double? DurationMilliseconds = null,
-    DeliveryResult? DeliveryResult = null);
+    DeliveryResult? DeliveryResult = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] DeliveryDiagnostics? Delivery = null);
+
+/// <summary>
+/// What a dictation delivery observed on the clipboard (see <see cref="DeliveryTrace"/>), written with its
+/// DeliveryCompleted entry: counts, millisecond offsets and process image names, never text, window titles or paths.
+/// </summary>
+internal sealed record DeliveryDiagnostics(
+    int? ClipboardSetAttempts,
+    string? TargetProcess,
+    int? PasteAtMs,
+    bool ClipboardChangedBeforePaste,
+    IReadOnlyList<ClipboardHold>? ClipboardHolds);
 
 internal sealed class TechnicalLog
 {
@@ -96,7 +108,8 @@ internal sealed class TechnicalLog
         CancellationToken cancellationToken = default,
         double? durationMilliseconds = null,
         DateTimeOffset? occurredAtUtc = null,
-        DeliveryResult? deliveryResult = null)
+        DeliveryResult? deliveryResult = null,
+        DeliveryDiagnostics? delivery = null)
     {
         DateTimeOffset timestamp = occurredAtUtc ?? _timeProvider.GetUtcNow();
         lock (_writeQueueGate)
@@ -116,7 +129,8 @@ internal sealed class TechnicalLog
                         hresult,
                         cancellationToken,
                         durationMilliseconds,
-                        deliveryResult).ConfigureAwait(false);
+                        deliveryResult,
+                        delivery).ConfigureAwait(false);
                 }
                 catch (Exception failure)
                 {
@@ -143,7 +157,8 @@ internal sealed class TechnicalLog
         int? hresult,
         CancellationToken cancellationToken,
         double? durationMilliseconds,
-        DeliveryResult? deliveryResult)
+        DeliveryResult? deliveryResult,
+        DeliveryDiagnostics? delivery)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var entry = new TechnicalLogEntry(
@@ -154,7 +169,8 @@ internal sealed class TechnicalLog
             exception?.GetType().Name,
             hresult ?? exception?.HResult,
             durationMilliseconds,
-            deliveryResult);
+            deliveryResult,
+            delivery);
         byte[] payload = Utf8.GetBytes(JsonSerializer.Serialize(entry, JsonOptions) + "\n");
         if (payload.LongLength > MaxBytes)
             return;

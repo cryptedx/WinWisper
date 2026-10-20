@@ -170,8 +170,8 @@ internal static class Program
         await ChangeDictionaryAsync("a = b", () =>
         {
             AssertEqual(true, dictionaryStatus.Text.Length > 0, "Dictionary save failure is visible");
-            window.SetReplayHotkeyStatus(false);
-            AssertEqual(true, ((TextBlock)root.FindName("ReplayHotkeyStatusText")).Text.Contains("unavailable"),
+            window.SetHotkeyStatus(HotkeyCaptureTarget.Replay, false, AppSettings.Default.ReplayHotkey, null);
+            AssertEqual(SettingsWindow.HotkeyUnavailableText, ((TextBlock)root.FindName("ReplayHotkeyStatusText")).Text,
                 "Replay hotkey conflict is visible");
         });
     }
@@ -376,20 +376,34 @@ internal static class Program
             AssertEqual(false, window.EnglishDictationHotkeyButton.IsEnabled, "English dictation capture disables its button");
             window.SetHotkey(HotkeyCaptureTarget.EnglishDictation, AppSettings.Default.EnglishDictationHotkey);
             AssertEqual(true, window.EnglishDictationHotkeyButton.IsEnabled, "English dictation capture ends");
-            window.SetEnglishDictationHotkeyStatus(false);
+            window.SetHotkeyStatus(HotkeyCaptureTarget.EnglishDictation, false, AppSettings.Default.EnglishDictationHotkey, null);
             AssertEqual(SettingsWindow.HotkeyUnavailableText, window.EnglishDictationHotkeyStatusText.Text, "English dictation unavailable status");
-            window.SetEnglishDictationHotkeyStatus(true);
+            window.SetHotkeyStatus(HotkeyCaptureTarget.EnglishDictation, true, AppSettings.Default.EnglishDictationHotkey, null);
             AssertEqual(SettingsWindow.HotkeyAvailableText, window.EnglishDictationHotkeyStatusText.Text, "English dictation available status");
-            AssertEqual("Ctrl + Alt + E", window.TranslateHotkeyButton.Content?.ToString() ?? string.Empty,
+            AssertEqual("Alt + Shift + U", window.TranslateHotkeyButton.Content?.ToString() ?? string.Empty,
                 "Translate hotkey default");
+            AssertEqual("Alt + Shift + V", window.ReplayHotkeyButton.Content?.ToString() ?? string.Empty,
+                "Replay hotkey default");
             window.BeginHotkeyCapture(HotkeyCaptureTarget.Translate);
             AssertEqual(false, window.TranslateHotkeyButton.IsEnabled, "Translate capture disables its button");
             window.SetHotkey(HotkeyCaptureTarget.Translate, AppSettings.Default.TranslateHotkey);
             AssertEqual(true, window.TranslateHotkeyButton.IsEnabled, "Translate capture ends");
-            window.SetTranslateHotkeyStatus(false);
+            window.SetHotkeyStatus(HotkeyCaptureTarget.Translate, false, AppSettings.Default.TranslateHotkey, null);
             AssertEqual(SettingsWindow.HotkeyUnavailableText, window.TranslateHotkeyStatusText.Text, "Translate unavailable status");
-            window.SetTranslateHotkeyStatus(true);
+            window.SetHotkeyStatus(HotkeyCaptureTarget.Translate, true, AppSettings.Default.TranslateHotkey, null);
             AssertEqual(SettingsWindow.HotkeyAvailableText, window.TranslateHotkeyStatusText.Text, "Translate available status");
+            var legacyTranslate = new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x45);
+            var euro = new HotkeyCharacterClash("€", "German (Germany)");
+            window.SetHotkeyStatus(HotkeyCaptureTarget.Translate, true, legacyTranslate, euro);
+            AssertEqual(SettingsWindow.HotkeyClashText(legacyTranslate, euro), window.TranslateHotkeyStatusText.Text,
+                "Translate clash status");
+            window.SetHotkeyStatus(HotkeyCaptureTarget.Primary, true, AppSettings.Default.Hotkey, null);
+            AssertEqual(Visibility.Collapsed, window.HotkeyStatusText.Visibility, "A free dictation hotkey shows no status");
+            window.ShowHotkey(HotkeyCaptureTarget.Replay);
+            AssertEqual(Visibility.Visible, window.DictationPage.Visibility, "The clash notice opens the replay hotkey's page");
+            window.ShowHotkey(HotkeyCaptureTarget.Translate);
+            AssertEqual(Visibility.Visible, window.TranslationPage.Visibility, "The clash notice opens the translate hotkey's page");
+            AssertEqual(Visibility.Collapsed, window.DictationPage.Visibility, "Only the hotkey's page shows");
             AssertTranslationState(
                 window,
                 TranslationModelState.Missing,

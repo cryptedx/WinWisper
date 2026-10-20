@@ -60,6 +60,26 @@ public sealed class TechnicalLogTests
     }
 
     [TestMethod]
+    public async Task Delivery_details_appear_only_on_entries_that_have_them()
+    {
+        using var root = new TemporaryDirectory();
+        var log = new TechnicalLog(root.Path, TimeProvider.System);
+        await log.WriteAsync(TechnicalEvent.DeliveryStarted);
+        await log.WriteAsync(
+            TechnicalEvent.DeliveryCompleted,
+            deliveryResult: DeliveryResult.PasteSent,
+            delivery: new DeliveryDiagnostics(1, "notepad.exe", 152, false, [new ClipboardHold("Ditto.exe", 104, 31)]));
+
+        string[] lines = File.ReadAllLines(Directory.GetFiles(root.Path).Single());
+        using var started = System.Text.Json.JsonDocument.Parse(lines[0]);
+        using var completed = System.Text.Json.JsonDocument.Parse(lines[1]);
+        Assert.IsFalse(started.RootElement.TryGetProperty("Delivery", out _));
+        Assert.AreEqual(
+            """{"ClipboardSetAttempts":1,"TargetProcess":"notepad.exe","PasteAtMs":152,"ClipboardChangedBeforePaste":false,"ClipboardHolds":[{"Process":"Ditto.exe","AtMs":104,"ForMs":31}]}""",
+            completed.RootElement.GetProperty("Delivery").GetRawText());
+    }
+
+    [TestMethod]
     public async Task Entries_are_written_in_enqueue_order()
     {
         using var root = new TemporaryDirectory();

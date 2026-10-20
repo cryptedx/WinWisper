@@ -11,9 +11,9 @@ public sealed class AppSettingsStoreTests
     public void Invalid_unrelated_fields_and_a_legacy_dictionary_field_do_not_fail_the_load()
     {
         foreach (string field in new[] { "\"Mode\":99", "\"Hotkey\":{}", "\"MicrophoneId\":42", "\"VoiceCommandsEnabled\":{}", "\"SpeechMode\":null" })
-            Assert.AreEqual(AppSettings.Default,
+            Assert.AreEqual(AppSettings.ExistingInstallationDefaults,
                 AppSettingsStore.Parse("{" + field + ",\"PersonalDictionary\":\"old dictionary text\"}"), field);
-        Assert.AreEqual(AppSettings.Default, AppSettingsStore.Parse("{\"PersonalDictionary\":42}"));
+        Assert.AreEqual(AppSettings.ExistingInstallationDefaults, AppSettingsStore.Parse("{\"PersonalDictionary\":42}"));
     }
 
     [TestMethod]
@@ -33,7 +33,8 @@ public sealed class AppSettingsStoreTests
 
         Assert.AreEqual(new Hotkey(HotkeyModifiers.Shift | HotkeyModifiers.Alt, 0x45), settings.EnglishDictationHotkey);
         Assert.AreEqual(RecordingMode.Hold, settings.EnglishDictationMode);
-        Assert.AreEqual(settings, AppSettings.Default);
+        Assert.AreEqual(AppSettings.Default.EnglishDictationHotkey, settings.EnglishDictationHotkey);
+        Assert.AreEqual(AppSettings.Default.EnglishDictationMode, settings.EnglishDictationMode);
     }
 
     [TestMethod]
@@ -56,7 +57,7 @@ public sealed class AppSettingsStoreTests
     [TestMethod]
     public void Invalid_stored_english_dictation_values_fall_back_to_the_defaults()
     {
-        AppSettings defaults = AppSettings.Default;
+        AppSettings defaults = AppSettings.ExistingInstallationDefaults;
         foreach (string field in new[]
         {
             "\"EnglishDictationHotkey\":{\"Modifiers\":0,\"VirtualKey\":69}",
@@ -87,12 +88,89 @@ public sealed class AppSettingsStoreTests
     }
 
     [TestMethod]
-    public void The_translate_hotkey_defaults_to_ctrl_alt_e()
+    public void A_new_installation_gets_shift_alt_hotkeys_that_type_no_altgr_character()
     {
-        AppSettings settings = AppSettingsStore.Parse("{}");
+        InDirectory(path =>
+        {
+            AppSettings settings = new AppSettingsStore(path).Load();
 
-        Assert.AreEqual(new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x45), settings.TranslateHotkey);
-        Assert.AreEqual(settings, AppSettings.Default);
+            Assert.AreEqual(AppSettings.Default, settings);
+            const HotkeyModifiers shiftAlt = HotkeyModifiers.Shift | HotkeyModifiers.Alt;
+            Assert.AreEqual(new Hotkey(shiftAlt, 0x58), settings.Hotkey);
+            Assert.AreEqual(new Hotkey(shiftAlt, 0x42), settings.BoardHotkey);
+            Assert.AreEqual(new Hotkey(shiftAlt, 0x54), settings.TaskHotkey);
+            Assert.AreEqual(new Hotkey(shiftAlt, 0x45), settings.EnglishDictationHotkey);
+            Assert.AreEqual(new Hotkey(shiftAlt, 0x55), settings.TranslateHotkey);
+            Assert.AreEqual(new Hotkey(shiftAlt, 0x56), settings.ReplayHotkey);
+            Assert.AreEqual("", settings.HotkeyClashesShown);
+        });
+    }
+
+    [TestMethod]
+    public void An_existing_file_keeps_the_hotkeys_of_1_11_for_every_hotkey_it_does_not_store()
+    {
+        // As written by 1.11: every hotkey but the replay hotkey, which was fixed then.
+        AppSettings stored = AppSettingsStore.Parse(
+            "{\"Mode\":0,\"Hotkey\":{\"Modifiers\":5,\"VirtualKey\":88},\"BoardHotkey\":{\"Modifiers\":3,\"VirtualKey\":66},"
+            + "\"TaskHotkey\":{\"Modifiers\":3,\"VirtualKey\":84},\"EnglishDictationHotkey\":{\"Modifiers\":5,\"VirtualKey\":69},"
+            + "\"TranslateHotkey\":{\"Modifiers\":3,\"VirtualKey\":69}}");
+        AppSettings empty = AppSettingsStore.Parse("{}");
+
+        const HotkeyModifiers controlAlt = HotkeyModifiers.Control | HotkeyModifiers.Alt;
+        foreach (AppSettings settings in new[] { stored, empty })
+        {
+            Assert.AreEqual(new Hotkey(controlAlt, 0x42), settings.BoardHotkey);
+            Assert.AreEqual(new Hotkey(controlAlt, 0x54), settings.TaskHotkey);
+            Assert.AreEqual(new Hotkey(controlAlt, 0x45), settings.TranslateHotkey);
+            Assert.AreEqual(new Hotkey(controlAlt, 0x56), settings.ReplayHotkey);
+        }
+        Assert.AreEqual(AppSettings.ExistingInstallationDefaults, empty);
+    }
+
+    [TestMethod]
+    public void Unreadable_settings_keep_the_hotkeys_of_1_11()
+    {
+        InDirectory(path =>
+        {
+            File.WriteAllText(path, "{broken");
+
+            Assert.AreEqual(AppSettings.ExistingInstallationDefaults, new AppSettingsStore(path).Load());
+        });
+    }
+
+    [TestMethod]
+    public void The_replay_hotkey_and_the_shown_clashes_round_trip_through_the_file()
+    {
+        InDirectory(path =>
+        {
+            var store = new AppSettingsStore(path);
+            AppSettings custom = store.Load() with
+            {
+                ReplayHotkey = new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Shift, 0x56),
+                HotkeyClashesShown = "3+69:€:German (Germany)"
+            };
+            Assert.AreEqual(SettingsSaveStatus.Saved, store.Save(custom).Status);
+
+            Assert.AreEqual(custom, new AppSettingsStore(path).Load());
+        });
+    }
+
+    [TestMethod]
+    public void An_invalid_stored_replay_hotkey_falls_back_to_ctrl_alt_v()
+    {
+        foreach (string field in new[]
+        {
+            "\"ReplayHotkey\":{\"Modifiers\":0,\"VirtualKey\":86}",
+            "\"ReplayHotkey\":{\"Modifiers\":4,\"VirtualKey\":27}",
+            "\"ReplayHotkey\":\"Ctrl+Alt+V\"",
+            "\"ReplayHotkey\":null"
+        })
+        {
+            AppSettings settings = AppSettingsStore.Parse("{\"Mode\":1," + field + "}");
+            Assert.AreEqual(new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x56), settings.ReplayHotkey, field);
+            Assert.AreEqual(RecordingMode.Hold, settings.Mode, field);
+        }
+        Assert.AreEqual("", AppSettingsStore.Parse("{\"HotkeyClashesShown\":42}").HotkeyClashesShown);
     }
 
     [TestMethod]
@@ -114,7 +192,7 @@ public sealed class AppSettingsStoreTests
     [TestMethod]
     public void An_invalid_stored_translate_hotkey_falls_back_to_the_default_without_disturbing_the_rest()
     {
-        AppSettings defaults = AppSettings.Default;
+        AppSettings defaults = AppSettings.ExistingInstallationDefaults;
         foreach (string field in new[]
         {
             "\"TranslateHotkey\":{\"Modifiers\":0,\"VirtualKey\":69}",

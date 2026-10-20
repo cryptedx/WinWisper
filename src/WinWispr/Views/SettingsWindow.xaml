@@ -93,6 +93,12 @@
                                         Content="Shift + Alt + X"
                                         HorizontalAlignment="Left"
                                         Click="HotkeyButton_Click" />
+                                <TextBlock x:Name="HotkeyStatusText"
+                                           x:FieldModifier="internal"
+                                           Style="{StaticResource SettingsHelperTextStyle}"
+                                           TextWrapping="Wrap"
+                                           Visibility="Collapsed"
+                                           AutomationProperties.LiveSetting="Polite" />
                                 <TextBlock x:Name="HotkeyCaptureStatusText"
                                            x:FieldModifier="internal"
                                            TextWrapping="Wrap"
@@ -202,11 +208,19 @@
                                            TextWrapping="Wrap"
                                            AutomationProperties.LiveSetting="Polite" />
                                 <TextBlock Text="Insert last dictation again" FontWeight="SemiBold" />
+                                <Button x:Name="ReplayHotkeyButton"
+                                        x:FieldModifier="internal"
+                                        AutomationProperties.Name="Insert again hotkey"
+                                        Content="Alt + Shift + V"
+                                        HorizontalAlignment="Left"
+                                        Click="ReplayHotkeyButton_Click" />
                                 <TextBlock x:Name="ReplayHotkeyStatusText"
+                                           x:FieldModifier="internal"
                                            Style="{StaticResource SettingsHelperTextStyle}"
+                                           TextWrapping="Wrap"
                                            AutomationProperties.LiveSetting="Polite" />
                                 <TextBlock Style="{StaticResource SettingsHelperTextStyle}"
-                                           Text="Click the destination field, then press Ctrl + Alt + V and release the keys. The last result stays only in memory until you exit WinWispr. Available while no recording is running." />
+                                           Text="Click the destination field, then press this hotkey and release the keys. The last result stays only in memory until you exit WinWispr. Available while no recording is running." />
                             </StackPanel>
                             <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
                             <StackPanel x:Name="MicrophoneSection" Spacing="10">
@@ -245,7 +259,7 @@
                                 <TextBlock Text="Board hotkey" />
                                 <Button x:Name="BoardHotkeyButton"
                                         AutomationProperties.Name="Task board hotkey"
-                                        Content="Ctrl + Alt + B"
+                                        Content="Alt + Shift + B"
                                         HorizontalAlignment="Left"
                                         Click="BoardHotkeyButton_Click" />
                                 <TextBlock x:Name="BoardHotkeyStatusText"
@@ -254,7 +268,7 @@
                                 <TextBlock Text="Task hotkey" />
                                 <Button x:Name="TaskHotkeyButton"
                                         AutomationProperties.Name="Task capture hotkey"
-                                        Content="Ctrl + Alt + T"
+                                        Content="Alt + Shift + T"
                                         HorizontalAlignment="Left"
                                         Click="TaskHotkeyButton_Click" />
                                 <TextBlock x:Name="TaskHotkeyStatusText"
@@ -366,7 +380,7 @@
                                 <Button x:Name="TranslateHotkeyButton"
                                         x:FieldModifier="internal"
                                         AutomationProperties.Name="Translate hotkey"
-                                        Content="Ctrl + Alt + E"
+                                        Content="Alt + Shift + U"
                                         HorizontalAlignment="Left"
                                         Click="TranslateHotkeyButton_Click" />
                                 <TextBlock x:Name="TranslateHotkeyStatusText"
