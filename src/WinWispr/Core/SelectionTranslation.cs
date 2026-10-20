@@ -534,7 +534,7 @@ internal sealed class SelectionTranslation : IDisposable
         try
         {
             DeliveryResult delivery = await _effects.DeliverAsync(target, text, token).ConfigureAwait(true);
-            return delivery == DeliveryResult.CopiedToClipboard ? CopiedNotice : null;
+            return delivery is DeliveryResult.CopiedToClipboard or DeliveryResult.TargetMenuOpen ? CopiedNotice : null;
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {

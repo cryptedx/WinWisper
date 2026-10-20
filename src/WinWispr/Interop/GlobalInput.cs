@@ -53,6 +53,18 @@ internal sealed class GlobalInputRouter
 
     internal static HookDecision OnBoardHotkey() => new(GlobalInputAction.OpenBoard, false);
 
+    /// <summary>
+    /// Whether a key-down completes one of the registered hotkeys while Alt or a Windows key is held. Windows consumes
+    /// the press of the hotkey's key, so the focused application can see a lone Alt or Windows press: on its release
+    /// a menu bar takes the keyboard, or Windows 11 Notepad moves the focus to its title bar, and the paste that
+    /// follows goes nowhere. The caller then taps the menu mask while the modifier is still down.
+    /// </summary>
+    internal static bool NeedsMenuMask(uint virtualKey, HotkeyModifiers held, IEnumerable<Hotkey?> hotkeys) =>
+        (held & (HotkeyModifiers.Alt | HotkeyModifiers.Windows)) != 0
+        && hotkeys.Any(hotkey => hotkey is Hotkey registered
+            && registered.VirtualKey == virtualKey
+            && registered.Modifiers == held);
+
     /// <summary>Every key-up of a hotkey's key is a release; the dictation hotkeys may share a key.</summary>
     internal static IEnumerable<GlobalInputAction> OnHotkeyKeyUp(
         uint virtualKey, uint? primaryVirtualKey, uint? taskVirtualKey, uint? englishDictationVirtualKey = null)
@@ -159,7 +171,7 @@ internal sealed class HotkeyRegistration
         hotkey.Modifiers != HotkeyModifiers.None
         && (hotkey.Modifiers & ~ValidModifiers) == 0
         && hotkey.VirtualKey is > 0 and <= byte.MaxValue
-        && hotkey.VirtualKey is not 0x1B and not 0x59;
+        && hotkey.VirtualKey is not 0x1B and not 0x59 and not NativeKeyboard.MenuMask;
 
     internal bool TryReplace(Hotkey candidate)
     {

@@ -739,8 +739,8 @@ public partial class App : Application
         RunOnUi(() =>
         {
             ShowOverlayStatus(DictationNoticePresentation.For(notice));
-            if (notice.Kind == DictationNoticeKind.CopiedToClipboard)
-                _tray?.ShowPasteFallback();
+            if (notice.Kind is DictationNoticeKind.CopiedToClipboard or DictationNoticeKind.TargetMenuOpen)
+                _tray?.ShowPasteFallback(menuOpen: notice.Kind == DictationNoticeKind.TargetMenuOpen);
         });
         if (notice.Kind == DictationNoticeKind.MicrophoneUnavailable)
             _ = _log.WriteAsync(TechnicalEvent.MicrophoneUnavailable);

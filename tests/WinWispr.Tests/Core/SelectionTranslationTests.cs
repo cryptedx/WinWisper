@@ -492,9 +492,11 @@ public sealed class SelectionTranslationTests
     }
 
     [TestMethod]
-    public async Task A_replace_whose_paste_could_not_be_sent_shows_the_copied_notice()
+    [DataRow((int)DeliveryResult.CopiedToClipboard)]
+    [DataRow((int)DeliveryResult.TargetMenuOpen)]
+    public async Task A_replace_whose_paste_could_not_be_sent_shows_the_copied_notice(int delivery)
     {
-        var harness = new Harness { Choice = PreviewChoice.Replace, Delivery = DeliveryResult.CopiedToClipboard };
+        var harness = new Harness { Choice = PreviewChoice.Replace, Delivery = (DeliveryResult)delivery };
 
         await harness.Press();
 

@@ -6,6 +6,8 @@ Parakeet TDT 0.6B V3 INT8; nothing is sent to the cloud. WinWispr also translate
 between German and English offline and keeps a small task board you can dictate
 into.
 
+Website: [cryptedx.github.io/WinWisper](https://cryptedx.github.io/WinWisper/)
+
 ![The WinWispr recording overlay while dictating into a text field](docs/images/overlay.png)
 
 ## Features
@@ -148,8 +150,9 @@ All hotkeys can be changed in **Settings**. The tray menu provides
 | **Overlay** | Select **Transcribe** or **Stop** while recording. |
 | **Cancel** | Press `Esc`, then press `Y` during the countdown to discard. |
 
-After pasting, WinWispr restores your previous clipboard contents unless
-something else was copied in the meantime. If a paste does not land, click the
+The result stays on the clipboard after pasting. When WinWispr cannot paste,
+it shows *Automatic paste unavailable* and you paste with `Ctrl + V`; if the
+window's menu was open, press `Esc` first. If a paste does not land, click the
 target field and press `Ctrl + Alt + V`. The last result is kept in memory only
 until WinWispr exits.
 

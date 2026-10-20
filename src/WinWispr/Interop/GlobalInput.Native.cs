@@ -25,6 +25,9 @@ internal sealed partial class GlobalInput : IDisposable
     private const uint WmAppInput = 0x8001;
     private const uint WmAppCapture = 0x8002;
     private const uint WmAppCaptureCancel = 0x8003;
+
+    /// <summary>Posted to the keyboard hook thread, which taps the menu mask once its hook procedure returns.</summary>
+    private const uint WmAppMenuMask = 0x8004;
     private const uint WmQuit = 0x0012;
     private const uint PmNoRemove = 0x0000;
     private const uint ModAlt = 0x0001;
@@ -54,6 +57,15 @@ internal sealed partial class GlobalInput : IDisposable
     private TaskCompletionSource<Hotkey?>? _capture;
     private CancellationTokenRegistration _captureCancellation;
     private HotkeyModifiers _captureModifiers;
+
+    /// <summary>The key of the hotkey chord that was masked last, until it or a modifier goes up.</summary>
+    private uint _maskedVirtualKey;
+
+    /// <summary>1 while a menu mask is posted to the hook thread but not yet sent.</summary>
+    private int _menuMaskPending;
+
+    /// <summary>1 from a masked chord's key-down until its mask passes this hook.</summary>
+    private int _menuMaskAwaited;
 
     /// <param name="isTranslating">
     /// Whether a selection translation reads or translates right now. Esc is recognized globally (and swallowed)
@@ -275,15 +287,24 @@ internal sealed partial class GlobalInput : IDisposable
         if (code < 0)
             return CallNextHookEx(0, code, wParam, lParam);
 
+        KbdLlHookStruct data = Marshal.PtrToStructure<KbdLlHookStruct>(lParam);
+        if (data.ExtraInfo == NativeKeyboard.MenuMaskTag)
+        {
+            Volatile.Write(ref _menuMaskAwaited, 0);
+            return CallNextHookEx(0, code, wParam, lParam);
+        }
+
         HookDecision decision = default;
         IEnumerable<GlobalInputAction> releases = [];
         bool suppress = false;
+        bool mask = false;
+        bool maskNow = false;
+        bool repeat = false;
         lock (_inputGate)
         {
             if (_disposed)
                 return CallNextHookEx(0, code, wParam, lParam);
 
-            KbdLlHookStruct data = Marshal.PtrToStructure<KbdLlHookStruct>(lParam);
             uint keyboardMessage = unchecked((uint)wParam.ToInt64());
             bool keyDown = keyboardMessage is WmKeyDown or WmSysKeyDown;
             bool keyUp = keyboardMessage is WmKeyUp or WmSysKeyUp;
@@ -316,10 +337,28 @@ internal sealed partial class GlobalInput : IDisposable
             else
             {
                 if (keyDown)
+                {
                     decision = _router.OnKeyDown(
                         data.VirtualKey, _state(), data.VirtualKey == 0x1B && _isTranslating());
+                    if (IsRegisteredHotkeyKey(data.VirtualKey)
+                        && GlobalInputRouter.NeedsMenuMask(data.VirtualKey, NativeKeyboard.HeldModifiers(), RegisteredHotkeys()))
+                    {
+                        // After the mask, Windows takes the key's auto-repeat for a new press and fires the hotkey
+                        // again despite MOD_NOREPEAT. The repeat stops here; the application never saw the key.
+                        repeat = data.VirtualKey == _maskedVirtualKey;
+                        mask = !repeat;
+                        _maskedVirtualKey = data.VirtualKey;
+                    }
+                }
                 else if (keyUp)
                 {
+                    bool modifierUp = TryGetModifierVirtualKey(data.VirtualKey, out HotkeyModifiers released);
+                    if (data.VirtualKey == _maskedVirtualKey || modifierUp)
+                        _maskedVirtualKey = 0;
+                    // Keys that arrive in one burst (a macro tool, a remote session) can bring Alt's release before
+                    // the mask: posted or sent, it then queues behind the burst. Send one now, ahead of the release.
+                    maskNow = released is HotkeyModifiers.Alt or HotkeyModifiers.Windows
+                        && Interlocked.Exchange(ref _menuMaskAwaited, 0) == 1;
                     decision = _router.OnKeyUp(data.VirtualKey, _state());
                     if (!decision.Suppress)
                         releases = GlobalInputRouter.OnHotkeyKeyUp(
@@ -329,16 +368,45 @@ internal sealed partial class GlobalInput : IDisposable
                             _activeEnglishDictationHotkey?.VirtualKey).ToArray();
                 }
 
-                suppress = decision.Suppress;
+                suppress = decision.Suppress || repeat;
             }
         }
 
+        if (mask)
+        {
+            Volatile.Write(ref _menuMaskAwaited, 1);
+            Volatile.Write(ref _menuMaskPending, 1);
+            PostThreadMessage(Volatile.Read(ref _keyboardHookThreadId), WmAppMenuMask, 0, 0);
+        }
+        if (maskNow)
+        {
+            Volatile.Write(ref _menuMaskPending, 0);
+            NativeKeyboard.SendMenuMask();
+        }
         if (decision.Action != GlobalInputAction.None)
             PostAction(decision.Action);
         foreach (GlobalInputAction release in releases)
             PostAction(release);
         return suppress ? HookSuppress : CallNextHookEx(0, code, wParam, lParam);
     }
+
+    private bool IsRegisteredHotkeyKey(uint virtualKey) =>
+        _activeHotkey?.VirtualKey == virtualKey
+        || _activeBoardHotkey?.VirtualKey == virtualKey
+        || _activeTaskHotkey?.VirtualKey == virtualKey
+        || _activeEnglishDictationHotkey?.VirtualKey == virtualKey
+        || _activeTranslateHotkey?.VirtualKey == virtualKey
+        || (ReplayHotkeyAvailable && ReplayHotkey.VirtualKey == virtualKey);
+
+    private Hotkey?[] RegisteredHotkeys() =>
+    [
+        _activeHotkey,
+        _activeBoardHotkey,
+        _activeTaskHotkey,
+        _activeEnglishDictationHotkey,
+        _activeTranslateHotkey,
+        ReplayHotkeyAvailable ? ReplayHotkey : null
+    ];
 
     private void PostAction(GlobalInputAction action)
     {
@@ -421,6 +489,10 @@ internal sealed partial class GlobalInput : IDisposable
 
             while (GetMessage(out message, 0, 0, 0) > 0)
             {
+                // Sent here rather than inside the hook procedure, which must return quickly; the user still holds
+                // the modifier, because the hotkey's key went down a moment ago. A release that came first sent it.
+                if (message.Message == WmAppMenuMask && Interlocked.Exchange(ref _menuMaskPending, 0) == 1)
+                    NativeKeyboard.SendMenuMask();
             }
         }
         catch

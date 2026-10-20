@@ -116,9 +116,11 @@ internal sealed class TrayIcon : IDisposable
     /// <summary>The label of the update entry while an update is known, such as "Install update 1.11.0".</summary>
     internal string? UpdateMenuLabel { get; set; }
 
-    internal bool ShowPasteFallback() => ShowNotice(
+    internal bool ShowPasteFallback(bool menuOpen = false) => ShowNotice(
         "Automatic paste unavailable",
-        "Your text is on the clipboard. Press Ctrl+V to paste it manually.",
+        menuOpen
+            ? "Your text is on the clipboard. The window's menu was open: press Esc, then Ctrl+V to paste it."
+            : "Your text is on the clipboard. Press Ctrl+V to paste it manually.",
         warning: true);
 
     internal bool ShowTaskSummary(TaskDailySummary summary) =>

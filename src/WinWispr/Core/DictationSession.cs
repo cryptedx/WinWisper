@@ -31,7 +31,10 @@ internal enum DeliveryResult
 {
     PasteSent,
     CopiedToClipboard,
-    NoSpeech
+    NoSpeech,
+
+    /// <summary>The target's menu holds the keyboard, so no paste was sent; the text is on the clipboard.</summary>
+    TargetMenuOpen
 }
 
 /// <summary>What a dictation notice reports. The visible text lives in DictationNoticePresentation.</summary>
@@ -43,6 +46,9 @@ internal enum DictationNoticeKind
     TranscriptionFailed,
     NoSpeech,
     CopiedToClipboard,
+
+    /// <summary>The target window was in menu mode; the text is on the clipboard and nothing was pasted.</summary>
+    TargetMenuOpen,
     ClipboardUnavailable,
     NothingToReplay,
     TaskReady,
@@ -741,6 +747,7 @@ internal sealed class DictationSession : IDisposable
         {
             DeliveryResult.PasteSent => null,
             DeliveryResult.CopiedToClipboard => new DictationNotice(DictationNoticeKind.CopiedToClipboard),
+            DeliveryResult.TargetMenuOpen => new DictationNotice(DictationNoticeKind.TargetMenuOpen),
             _ => new DictationNotice(DictationNoticeKind.NoSpeech)
         };
     }

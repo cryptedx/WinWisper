@@ -378,6 +378,47 @@ of every line below in this table (PASS or FAIL with a short note, application a
 | Notepad | English dictation with `Shift + Alt + E` (Hold and Toggle, with the real microphone, speaking German): English text is pasted; `Esc` within 5 s cancels | Not run |
 | Any application | Windows clipboard history (`Win + V`): the translation does not appear (the copied selection of the source application may) | Not run |
 
+### Paste after Alt hotkeys (key release order)
+
+Windows consumes a hotkey's key but passes its modifiers to the focused application. When Alt is released before the
+key, the application sees a lone Alt press: Notepad++ enters its menu bar, Windows 11 Notepad moves the focus to its
+title bar (also after `Ctrl+Alt` chords when Alt goes up before Ctrl), and the `Ctrl+V` that follows pastes nothing
+while the delivery reports `PasteSent`. WinWispr's keyboard hook therefore taps the unassigned key `0xE8` while Alt or a
+Windows key of one of its hotkeys is held, and the delivery refuses to paste into a window in menu mode.
+
+Two `WindowsAcceptance` tests cover it. Both press the keys with scan codes, like a keyboard, Shift or Ctrl before Alt:
+
+- `HotkeyReleasePasteTests` registers `Shift+Alt+Q` and `Ctrl+Alt+Q` through `GlobalInput` (WinWispr's hook and
+  registration) over Windows 11 Notepad and Notepad++, releases the keys in every order, also after holding the key
+  with auto-repeat (Hold mode) and as one `SendInput` burst (as macro tools and remote sessions deliver keys), and
+  sends WinWispr's `Ctrl+V`. Every paste must arrive, bursts excepted, and each chord must reach WinWispr exactly
+  once. A control run registers the same chords with `RegisterHotKey` alone and only records the outcome; the test is
+  inconclusive if the control run loses no paste, because then the editors no longer react to a lone Alt press.
+- `PasteDeliveryEndToEndTests.Real_application_pastes_into_notepad_after_a_shift_alt_toggle_released_alt_first` starts
+  the real application with `Shift+Alt+Q` in Toggle mode, releases Alt first at both presses, dictates the German clip
+  into Windows 11 Notepad four times, and asserts that every dictation was pasted.
+
+```bash
+./eng/deploy-windows-vm.sh --check --test-filter 'FullyQualifiedName~HotkeyReleasePasteTests|FullyQualifiedName~PasteDeliveryEndToEndTests'
+ssh windows-vm 'Get-Content $env:TEMP\winwispr-hotkey-release-evidence.txt'
+ssh windows-vm 'Get-Content $env:TEMP\winwispr-paste-e2e-evidence.txt'
+```
+
+Evidence on windows-vm, 2026-10-20, without bursts (20 pastes per editor): with the mask, every paste arrived in both
+editors. In the control run, Windows 11 Notepad lost 12 of 20 (focus on the title bar's Settings button): every
+`Shift+Alt` order that released Alt first, Hold included, and the `Ctrl+Alt` orders that released Alt before Ctrl.
+Notepad++ lost 6 of 20 (menu mode `GUI_INMENUMODE`): the `Shift+Alt` orders that released Alt first, Hold included;
+there the second Alt release of a Toggle session (`AKS,AKS`) closes the menu again. The masked Hold run first showed
+two hotkey presses per chord: after the mask, Windows takes the key's auto-repeat for a new press despite
+`MOD_NOREPEAT`, so the hook now swallows that repeat. The real application with the mask disabled pasted 0 of 4
+dictations, each logged as `PasteSent`; with the mask it pasted 4 of 4 in each of four runs.
+
+Bursts are mitigated, not solved. When the whole chord arrives at once, Alt's release can reach the hook before the
+mask, which the hook thread then sends behind the burst; the hook therefore sends a mask itself at Alt's release until
+one has passed it. With that, the `Shift+Alt` burst pasted 2 of 2 in Notepad++ and 1 of 2 in Windows 11 Notepad
+(unmasked: 0 of 2 each); the `Ctrl+Alt` burst pasted even unmasked. A complete fix would hold back Alt's release and
+send it again after the mask, which risks a stuck Alt key, so the test only records bursts.
+
 ### Translation acceptance (the Translator on the real model)
 
 `TranslatorTests` is deterministic: a fake engine stands behind the Translator, so the default suite checks result

@@ -24,6 +24,9 @@ public sealed class PasteDeliveryEndToEndTests
     private const int Dictations = 4;
     private static readonly TimeSpan MonitorHold = TimeSpan.FromMilliseconds(150);
 
+    // Shift+Alt+Q: the installed WinWispr holds Shift+Alt+X on the test machine.
+    private static readonly Hotkey ShiftAltHotkey = new(HotkeyModifiers.Shift | HotkeyModifiers.Alt, 0x51);
+
     [TestMethod]
     [TestCategory("WindowsAcceptance")]
     public void Real_application_pastes_into_notepad_while_a_clipboard_monitor_reads_every_change()
@@ -77,6 +80,116 @@ public sealed class PasteDeliveryEndToEndTests
             $"The clipboard monitor did not see every dictation: {string.Join("; ", outcomes)}");
         Assert.IsFalse(outcomes.Any(outcome => outcome.EndsWith("pasted=False", StringComparison.Ordinal)),
             $"A dictation was not pasted into Notepad: {string.Join("; ", outcomes)}");
+    }
+
+    /// <summary>
+    /// The shipped hotkey style, Shift+Alt plus a letter in Toggle mode, pressed Shift first and released Alt first at
+    /// both presses. Windows consumes the letter, so without WinWispr's menu mask Windows 11 Notepad sees a lone Alt
+    /// press, moves the focus to its title bar, and the paste goes nowhere while the delivery reports PasteSent.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("WindowsAcceptance")]
+    public void Real_application_pastes_into_notepad_after_a_shift_alt_toggle_released_alt_first()
+    {
+        float[] clip = Pcm16Wave.ReadMono16Khz(TrustedSpeechFixtures.Require().GermanClip);
+        TimeSpan speaking = TimeSpan.FromSeconds((double)clip.Length / CaptureFormat.SampleRate)
+            + TimeSpan.FromMilliseconds(500);
+        var outcomes = new List<string>();
+
+        TaskBoardEndToEndTests.WithProfile((root, instance, exit) =>
+        {
+            DictationEndToEndTests.SeedDictationProfile(root);
+            var settingsStore = new AppSettingsStore(Path.Combine(root, "settings.json"));
+            settingsStore.Save(settingsStore.Load() with { Hotkey = ShiftAltHotkey, Mode = RecordingMode.Toggle });
+            string replayPath = Path.Combine(root, "replay.pcm");
+            File.WriteAllBytes(replayPath, Pcm16Wave.ToPcm16(clip));
+            string document = Path.Combine(root, "paste-target.txt");
+            File.WriteAllText(document, "");
+
+            TaskBoardEndToEndTests.RunApplication(root, instance, exit, ui =>
+            {
+                DictationEndToEndTests.WaitForTitle(
+                    ui, DictationEndToEndTests.Ready, DictationEndToEndTests.ModelLoadTimeout, "speech model loads");
+                DictationEndToEndTests.WaitForIdle(ui, "ready status clears");
+                ui.PressHotkey(DictationEndToEndTests.BoardHotkey, "hide the board so Notepad keeps the focus");
+                ui.WaitForBoardHidden("board is hidden");
+
+                using var notepad = new NotepadTarget(document);
+                for (int dictation = 1; dictation <= Dictations; dictation++)
+                {
+                    notepad.Clear();
+                    PressShiftAltReleasingAltFirst();
+                    DictationEndToEndTests.WaitForTitle(
+                        ui, DictationEndToEndTests.Recording, DictationEndToEndTests.StepTimeout, "toggle press starts recording");
+                    Thread.Sleep(speaking);
+                    PressShiftAltReleasingAltFirst();
+                    DictationEndToEndTests.WaitForIdle(ui, "dictation returns to idle");
+                    Thread.Sleep(1000);
+                    outcomes.Add($"#{dictation} delivery={LastDeliveryResult(root)} pasted={notepad.HasText}");
+                }
+            },
+            launchArgument: "--e2e-dictation",
+            environment: new Dictionary<string, string> { ["WINWISPR_E2E_AUDIO_PCM16"] = replayPath });
+        });
+
+        Console.WriteLine(string.Join(Environment.NewLine, outcomes));
+        File.AppendAllLines(Path.Combine(Path.GetTempPath(), "winwispr-paste-e2e-evidence.txt"),
+            [$"{DateTimeOffset.UtcNow:O} Shift+Alt toggle, Alt released first", .. outcomes]);
+        Assert.IsFalse(outcomes.Any(outcome => outcome.EndsWith("pasted=False", StringComparison.Ordinal)),
+            $"A dictation was not pasted into Notepad: {string.Join("; ", outcomes)}");
+    }
+
+    /// <summary>
+    /// Shift, Alt and the letter down, then Alt, the letter and Shift up, with scan codes like a keyboard. If a step
+    /// fails, every key goes up again, so none stays held on the shared desktop.
+    /// </summary>
+    private static void PressShiftAltReleasingAltFirst()
+    {
+        ushort letter = (ushort)ShiftAltHotkey.VirtualKey;
+        try
+        {
+            SendPhysicalKey(0xA0, keyUp: false);
+            SendPhysicalKey(0xA4, keyUp: false);
+            SendPhysicalKey(letter, keyUp: false);
+            Thread.Sleep(60);
+            SendPhysicalKey(0xA4, keyUp: true);
+            SendPhysicalKey(letter, keyUp: true);
+            SendPhysicalKey(0xA0, keyUp: true);
+        }
+        catch
+        {
+            foreach (ushort key in new ushort[] { 0xA4, letter, 0xA0 })
+            {
+                try
+                {
+                    SendPhysicalKey(key, keyUp: true);
+                }
+                catch (AssertFailedException)
+                {
+                }
+            }
+            throw;
+        }
+    }
+
+    private static void SendPhysicalKey(ushort virtualKey, bool keyUp)
+    {
+        var input = new INPUT
+        {
+            Type = 1,
+            Data = new InputUnion
+            {
+                Keyboard = new KEYBDINPUT
+                {
+                    VirtualKey = virtualKey,
+                    ScanCode = (ushort)MapVirtualKey(virtualKey, 0),
+                    Flags = keyUp ? 2u : 0u
+                }
+            }
+        };
+        if (SendInput(1, [input], Marshal.SizeOf<INPUT>()) != 1)
+            throw new AssertFailedException($"SendInput failed for virtual key 0x{virtualKey:X2}.");
+        Thread.Sleep(45);
     }
 
     private static string LastDeliveryResult(string root)
@@ -277,6 +390,9 @@ public sealed class PasteDeliveryEndToEndTests
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern uint SendInput(uint count, INPUT[] inputs, int size);
+
+    [DllImport("user32.dll")]
+    private static extern uint MapVirtualKey(uint code, uint mapType);
 
     [DllImport("user32.dll")]
     private static extern bool AddClipboardFormatListener(nint window);

@@ -10,6 +10,9 @@ internal sealed class WindowsTextOutput
     private const int ClipboardAttempts = 40;
     private const int ClipboardSettlePolls = 40;
     private const int ClipboardQuietPolls = 2;
+    private const uint GuiInMenuMode = 0x4;
+    private const uint GuiSystemMenuMode = 0x8;
+    private const uint GuiPopupMenuMode = 0x10;
     private static readonly TimeSpan ClipboardPollInterval = TimeSpan.FromMilliseconds(25);
 
     private readonly Func<nint> _getForegroundWindow;
@@ -17,6 +20,7 @@ internal sealed class WindowsTextOutput
     private readonly Func<int> _sendPaste;
     private readonly Func<bool> _modifiersPressed;
     private readonly Func<bool> _clipboardFree;
+    private readonly Func<nint, bool> _inMenuMode;
 
     internal WindowsTextOutput(DispatcherQueue dispatcher)
         : this(
@@ -24,7 +28,8 @@ internal sealed class WindowsTextOutput
             (text, cancellationToken) => SetClipboardAsync(dispatcher, text, cancellationToken),
             () => NativeKeyboard.SendControlChord(NativeKeyboard.V),
             NativeKeyboard.AreModifiersPressed,
-            IsClipboardFree)
+            IsClipboardFree,
+            IsInMenuMode)
     {
     }
 
@@ -33,13 +38,15 @@ internal sealed class WindowsTextOutput
         Func<string, Task> setClipboard,
         Func<int> sendPaste,
         Func<bool>? modifiersPressed = null,
-        Func<bool>? clipboardFree = null)
+        Func<bool>? clipboardFree = null,
+        Func<nint, bool>? inMenuMode = null)
         : this(
             getForegroundWindow,
             (text, _) => setClipboard(text),
             sendPaste,
             modifiersPressed ?? (() => false),
-            clipboardFree ?? (() => true))
+            clipboardFree ?? (() => true),
+            inMenuMode ?? (_ => false))
     {
     }
 
@@ -48,13 +55,15 @@ internal sealed class WindowsTextOutput
         Func<string, CancellationToken, Task> setClipboard,
         Func<int> sendPaste,
         Func<bool> modifiersPressed,
-        Func<bool> clipboardFree)
+        Func<bool> clipboardFree,
+        Func<nint, bool> inMenuMode)
     {
         _getForegroundWindow = getForegroundWindow;
         _setClipboard = setClipboard;
         _sendPaste = sendPaste;
         _modifiersPressed = modifiersPressed;
         _clipboardFree = clipboardFree;
+        _inMenuMode = inMenuMode;
     }
 
     /// <summary>
@@ -89,6 +98,9 @@ internal sealed class WindowsTextOutput
         cancellationToken.ThrowIfCancellationRequested();
         if (_getForegroundWindow() != target.Hwnd)
             return DeliveryResult.CopiedToClipboard;
+        // A menu bar or menu that holds the keyboard (a lone Alt press, for one) would swallow Ctrl+V without a trace.
+        if (_inMenuMode(target.Hwnd))
+            return DeliveryResult.TargetMenuOpen;
 
         try
         {
@@ -154,6 +166,15 @@ internal sealed class WindowsTextOutput
         }
     }
 
+    private static bool IsInMenuMode(nint window)
+    {
+        uint thread = GetWindowThreadProcessId(window, out _);
+        var info = new GuiThreadInfo { Size = Marshal.SizeOf<GuiThreadInfo>() };
+        return thread != 0
+            && GetGUIThreadInfo(thread, ref info)
+            && (info.Flags & (GuiInMenuMode | GuiSystemMenuMode | GuiPopupMenuMode)) != 0;
+    }
+
     private static bool IsClipboardFree()
     {
         if (!OpenClipboard(0))
@@ -168,8 +189,31 @@ internal sealed class WindowsTextOutput
         IsRoamable = false
     };
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct GuiThreadInfo
+    {
+        internal int Size;
+        internal uint Flags;
+        internal nint Active;
+        internal nint Focus;
+        internal nint Capture;
+        internal nint MenuOwner;
+        internal nint MoveSize;
+        internal nint Caret;
+        internal int CaretLeft;
+        internal int CaretTop;
+        internal int CaretRight;
+        internal int CaretBottom;
+    }
+
     [DllImport("user32.dll")]
     private static extern nint GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(nint window, out uint processId);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetGUIThreadInfo(uint thread, ref GuiThreadInfo info);
 
     [DllImport("user32.dll")]
     private static extern bool OpenClipboard(nint owner);

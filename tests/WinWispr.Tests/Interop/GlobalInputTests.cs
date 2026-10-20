@@ -37,6 +37,36 @@ public sealed class GlobalInputTests
     }
 
     [TestMethod]
+    public void A_hotkey_held_with_alt_or_windows_is_masked_so_the_target_sees_no_lone_alt()
+    {
+        var shiftAltX = new Hotkey(HotkeyModifiers.Shift | HotkeyModifiers.Alt, 0x58);
+        var controlAltV = new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Alt, 0x56);
+        var windowsShiftD = new Hotkey(HotkeyModifiers.Windows | HotkeyModifiers.Shift, 0x44);
+        var controlShiftX = new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Shift, 0x58);
+        Hotkey?[] registered = [shiftAltX, null, controlAltV, windowsShiftD, controlShiftX];
+
+        Assert.IsTrue(GlobalInputRouter.NeedsMenuMask(0x58, shiftAltX.Modifiers, registered));
+        // Windows 11 Notepad moves the focus to its title bar on an Alt release even with Ctrl held.
+        Assert.IsTrue(GlobalInputRouter.NeedsMenuMask(0x56, controlAltV.Modifiers, registered));
+        Assert.IsTrue(GlobalInputRouter.NeedsMenuMask(0x44, windowsShiftD.Modifiers, registered));
+    }
+
+    [TestMethod]
+    public void Keys_that_complete_no_registered_alt_or_windows_hotkey_are_not_masked()
+    {
+        var shiftAltX = new Hotkey(HotkeyModifiers.Shift | HotkeyModifiers.Alt, 0x58);
+        var controlShiftX = new Hotkey(HotkeyModifiers.Control | HotkeyModifiers.Shift, 0x58);
+        Hotkey?[] registered = [shiftAltX, controlShiftX];
+
+        Assert.IsFalse(GlobalInputRouter.NeedsMenuMask(0x58, HotkeyModifiers.Alt, registered), "Alt+X is another chord.");
+        Assert.IsFalse(GlobalInputRouter.NeedsMenuMask(
+            0x58, HotkeyModifiers.Control | HotkeyModifiers.Shift | HotkeyModifiers.Alt, registered));
+        Assert.IsFalse(GlobalInputRouter.NeedsMenuMask(0x59, shiftAltX.Modifiers, registered));
+        Assert.IsFalse(GlobalInputRouter.NeedsMenuMask(0x58, controlShiftX.Modifiers, registered), "No Alt or Windows key.");
+        Assert.IsFalse(GlobalInputRouter.NeedsMenuMask(0x58, shiftAltX.Modifiers, [null]));
+    }
+
+    [TestMethod]
     public void The_english_dictation_hotkey_routes_its_press_and_release_like_the_other_triggers()
     {
         Assert.AreEqual(GlobalInputAction.PressEnglishDictation, GlobalInputRouter.OnEnglishDictationHotkey().Action);
@@ -320,6 +350,8 @@ public sealed class GlobalInputTests
         Assert.IsFalse(HotkeyRegistration.IsValid(new Hotkey(HotkeyModifiers.None, 0x58)));
         Assert.IsFalse(HotkeyRegistration.IsValid(new Hotkey(HotkeyModifiers.Shift, 0x1B)));
         Assert.IsFalse(HotkeyRegistration.IsValid(new Hotkey(HotkeyModifiers.Shift, 0x59)));
+        // WinWispr's own menu mask presses this key.
+        Assert.IsFalse(HotkeyRegistration.IsValid(new Hotkey(HotkeyModifiers.Shift | HotkeyModifiers.Alt, NativeKeyboard.MenuMask)));
         Assert.IsFalse(HotkeyRegistration.IsValid(new Hotkey(HotkeyModifiers.Shift, 0)));
         Assert.IsTrue(HotkeyRegistration.IsValid(AppSettings.Default.Hotkey));
     }

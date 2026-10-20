@@ -36,6 +36,16 @@ public sealed class DictationNoticePresentationTests
     }
 
     [TestMethod]
+    public void A_target_in_menu_mode_asks_for_esc_before_ctrl_v()
+    {
+        OverlayStatus status = DictationNoticePresentation.For(new DictationNotice(DictationNoticeKind.TargetMenuOpen));
+
+        Assert.AreEqual(
+            OverlayStatus.Result("Automatic paste unavailable", "Press Esc, then Ctrl+V", TimeSpan.FromSeconds(8)),
+            status);
+    }
+
+    [TestMethod]
     public void Microphone_fallback_names_the_device_in_use_and_why_for_four_seconds()
     {
         OverlayStatus status = DictationNoticePresentation.For(new DictationNotice(DictationNoticeKind.MicrophoneFallback));

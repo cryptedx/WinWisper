@@ -139,6 +139,22 @@ public sealed class WindowsTextOutputTests
     }
 
     [TestMethod]
+    public async Task A_target_in_menu_mode_keeps_the_dictation_on_the_clipboard_without_a_paste()
+    {
+        // A menu bar that holds the keyboard swallows Ctrl+V; a notice is better than a silent loss.
+        bool pasted = false;
+        nint askedFor = 0;
+        var output = new WindowsTextOutput(() => 42, _ => Task.CompletedTask,
+            () => { pasted = true; return 4; },
+            inMenuMode: window => { askedFor = window; return true; });
+
+        Assert.AreEqual(DeliveryResult.TargetMenuOpen,
+            await output.DeliverAsync(new WindowTarget(42), "text", CancellationToken.None));
+        Assert.IsFalse(pasted);
+        Assert.AreEqual((nint)42, askedFor);
+    }
+
+    [TestMethod]
     public void Dictation_clipboard_content_is_not_historic_or_roamable()
     {
         var options = WindowsTextOutput.CreateClipboardOptions();

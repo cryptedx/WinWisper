@@ -583,6 +583,17 @@ public sealed class DictationSessionTests
     }
 
     [TestMethod]
+    public async Task A_target_in_menu_mode_reports_its_own_notice()
+    {
+        using var fixture = SessionFixture.Create();
+        fixture.Output.Result = DeliveryResult.TargetMenuOpen;
+        await fixture.Session.PressAsync(DictationTrigger.PrimaryHotkey, fixture.Target);
+        await fixture.Session.StopAsync(StopReason.User, CancellationToken.None);
+
+        CollectionAssert.AreEqual(new[] { new DictationNotice(DictationNoticeKind.TargetMenuOpen) }, fixture.Notices);
+    }
+
+    [TestMethod]
     public async Task Sent_paste_stays_silent_for_dictation_and_replay()
     {
         using var fixture = SessionFixture.Create();

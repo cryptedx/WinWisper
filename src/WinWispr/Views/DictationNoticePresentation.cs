@@ -41,6 +41,8 @@ internal static class DictationNoticePresentation
         DictationNoticeKind.NoSpeech => OverlayStatus.Result("No speech detected"),
         DictationNoticeKind.CopiedToClipboard => OverlayStatus.Result(
             "Automatic paste unavailable", "Press Ctrl+V to paste", PasteNoticeDuration),
+        DictationNoticeKind.TargetMenuOpen => OverlayStatus.Result(
+            "Automatic paste unavailable", "Press Esc, then Ctrl+V", PasteNoticeDuration),
         DictationNoticeKind.ClipboardUnavailable => OverlayStatus.Result("Clipboard unavailable"),
         DictationNoticeKind.NothingToReplay => OverlayStatus.Result("No dictation to insert yet"),
         DictationNoticeKind.TaskReady => OverlayStatus.Result("Task ready"),

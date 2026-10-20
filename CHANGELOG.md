@@ -177,6 +177,20 @@ not tamper-proof until copied to controlled storage and externally signed.
 
 ### Fixed
 
+- Dictations were still sometimes not pasted although the caret stayed in the
+  text box, without any notice. The default dictation hotkey `Shift+Alt+X`
+  contains Alt, and Windows swallows the press of `X` but passes Alt to the
+  application. When Alt was released first, the application saw a lone Alt
+  press: Notepad++ and other programs with a menu bar entered their menu, and
+  Windows 11 Notepad moved the focus to its title bar (also after `Ctrl+Alt`
+  hotkeys when Alt went up before Ctrl), so `Ctrl+V` went there. Whether it
+  happened depended on the order in which the keys were released. WinWispr now
+  taps an unassigned key (`0xE8`) while Alt or a Windows key of one of its
+  hotkeys is still held, so the application sees no lone Alt or Windows press;
+  `0xE8` can no longer be chosen as a hotkey key. If a window is in menu mode
+  anyway, WinWispr no longer sends `Ctrl+V` into the menu: it shows *Automatic
+  paste unavailable – Press Esc, then Ctrl+V*, the dictation is on the
+  clipboard, and the technical log records `TargetMenuOpen`.
 - Dictations were often not pasted although the target window kept the focus,
   while a manual `Ctrl+V` afterwards worked. Clipboard monitors such as
   security agents and clipboard histories open the clipboard as soon as it

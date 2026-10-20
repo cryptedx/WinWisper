@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WinWispr – local dictation for Windows 11</title>
+<meta name="description" content="WinWispr is a local dictation tool for Windows 11: hold a hotkey, speak, and the text appears in any app. Offline German–English translation and a task board included.">
+<meta property="og:title" content="WinWispr">
+<meta property="og:description" content="WinWispr is a local dictation tool for Windows 11: hold a hotkey, speak, and the text appears in any app. Offline German–English translation and a task board included.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://cryptedx.github.io/WinWisper/images/overlay.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%231f1d2b'/%3E%3Cg fill='%238b6bff'%3E%3Crect x='7' y='12' width='3' height='8' rx='1.5'/%3E%3Crect x='12' y='8' width='3' height='16' rx='1.5'/%3E%3Crect x='17' y='11' width='3' height='10' rx='1.5'/%3E%3Crect x='22' y='7' width='3' height='18' rx='1.5'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one narrow reading column that widens into split rows; the overlay capsule recurs as the brand mark, the divider and the hero demo. */
+:root {
+  --paper: #eef0f6;
+  --surface: #ffffff;
+  --ink: #15131f;
+  --muted: #5b5873;
+  --line: #d9dbe8;
+  --violet: #6a4dff;
+  --violet-soft: #e6e0ff;
+  --capsule: #1f1d2b;
+  --bar: #8b6bff;
+  --key: #ffffff;
+  --key-edge: #c3c5d6;
+  --sky: #0f7bc4;
+  --display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --step--1: 0.875rem;
+  --step-0: 1.0625rem;
+  --step-1: 1.3rem;
+  --step-2: 1.75rem;
+  --step-3: clamp(2.1rem, 4.2vw, 3rem);
+  --step-4: clamp(2.6rem, 7vw, 5rem);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12111a; --surface: #1b1a26; --ink: #ecebf5; --muted: #a3a0bd; --line: #2d2b3d;
+    --violet: #a08bff; --violet-soft: #2a2350; --capsule: #262435; --bar: #9b80ff;
+    --key: #24222f; --key-edge: #3c3a52; --sky: #5cc0ff; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12111a; --surface: #1b1a26; --ink: #ecebf5; --muted: #a3a0bd; --line: #2d2b3d;
+  --violet: #a08bff; --violet-soft: #2a2350; --capsule: #262435; --bar: #9b80ff;
+  --key: #24222f; --key-edge: #3c3a52; --sky: #5cc0ff; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font: 400 var(--step-0)/1.6 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  margin: 0;
+}
+.wrap { max-width: 1120px; margin-inline: auto; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.05; text-wrap: balance; margin: 0; letter-spacing: -0.02em; }
+p { margin: 0; }
+a { color: inherit; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--violet); outline-offset: 3px; border-radius: 6px; }
+.eyebrow { font: 700 var(--step--1)/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--violet); }
+
+/* Header */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 22px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 800 1.25rem/1 var(--display); }
+.mark { display: inline-flex; align-items: center; gap: 2px; height: 22px; padding: 0 7px; border-radius: 11px; background: var(--capsule); }
+.mark i { width: 2px; border-radius: 1px; background: var(--bar); }
+.nav { display: flex; gap: 22px; font-size: var(--step--1); }
+.nav a { text-decoration: none; color: var(--muted); }
+.nav a:hover { color: var(--ink); }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; padding-block: 40px 72px; }
+.hero > * { min-width: 0; }
+.hero h1 { font-size: var(--step-4); font-weight: 800; }
+.hero h1 em { font-style: normal; color: var(--violet); }
+.lede { margin-top: 20px; max-width: 34ch; font-size: var(--step-1); color: var(--muted); line-height: 1.45; }
+.ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 20px; border-radius: 12px; font: 700 1rem/1 var(--display); text-decoration: none; border: 1px solid var(--line); background: var(--surface); }
+.btn.primary { background: var(--violet); border-color: var(--violet); color: #fff; }
+:root[data-theme="dark"] .btn.primary { color: #12111a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.primary { color: #12111a; } }
+.btn small { font: 500 0.75rem/1 var(--mono); opacity: 0.8; }
+.fine { margin-top: 14px; font-size: var(--step--1); color: var(--muted); }
+
+/* Demo: a text window, the hotkey and the overlay capsule */
+.demo { position: relative; display: grid; gap: 22px; justify-items: center; }
+.window { width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 30px 60px -30px rgba(40, 30, 90, 0.35); overflow: hidden; }
+.titlebar { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--line); font: 500 0.78rem/1 var(--mono); color: var(--muted); }
+.dots { display: flex; gap: 14px; letter-spacing: 0; }
+.doc { min-height: 190px; padding: 18px 20px; font-size: 1.15rem; line-height: 1.55; }
+.doc .said { color: var(--ink); }
+.caret { display: inline-block; width: 2px; height: 1.15em; vertical-align: -0.2em; background: var(--violet); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.chord { display: flex; align-items: center; gap: 8px; font: 700 0.85rem/1 var(--mono); color: var(--muted); }
+kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 2.4em; padding: 8px 10px; border-radius: 8px; background: var(--key); border: 1px solid var(--key-edge); border-bottom-width: 3px; font: 700 0.85rem/1 var(--mono); color: var(--ink); transition: transform 0.12s, border-bottom-width 0.12s; }
+.held kbd { transform: translateY(2px); border-bottom-width: 1px; border-color: var(--violet); }
+.capsule { display: flex; align-items: center; gap: 4px; height: 46px; padding: 0 22px; border-radius: 23px; background: var(--capsule); box-shadow: 0 10px 30px -10px rgba(20, 10, 60, 0.6); }
+.capsule i { width: 4px; height: 6px; border-radius: 2px; background: var(--bar); transition: height 0.09s; }
+.status { font: 500 0.78rem/1 var(--mono); color: var(--muted); min-height: 1em; }
+
+/* Facts strip */
+.facts { display: grid; grid-template-columns: repeat(4, 1fr); border-block: 1px solid var(--line); }
+.fact { padding: 22px 20px; display: grid; gap: 6px; min-width: 0; }
+.fact + .fact { border-left: 1px solid var(--line); }
+.fact b { font: 800 var(--step-2)/1 var(--display); font-variant-numeric: tabular-nums; }
+.fact span { font-size: var(--step--1); color: var(--muted); }
+
+/* Feature rows */
+.features { display: grid; gap: 96px; padding-block: 96px; }
+.row { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 56px; align-items: center; }
+.row > * { min-width: 0; }
+.row.flip .copy { order: 2; }
+.copy { display: grid; gap: 16px; }
+.copy h2 { font-size: var(--step-3); }
+.copy p { color: var(--muted); max-width: 46ch; }
+.copy ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.copy li { display: flex; gap: 12px; align-items: baseline; }
+.copy li::before { content: ""; flex: none; width: 14px; height: 6px; border-radius: 3px; background: var(--bar); transform: translateY(-2px); }
+.shot { margin: 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--capsule); box-shadow: 0 30px 60px -34px rgba(40, 30, 90, 0.45); }
+.shot img { display: block; width: 100%; height: auto; }
+.shot.small { max-width: 520px; justify-self: center; }
+.shot figcaption { padding: 10px 14px; font: 500 0.78rem/1.3 var(--mono); color: #b9b6d3; background: var(--capsule); }
+
+/* Hotkeys */
+.section { padding-block: 88px; border-top: 1px solid var(--line); }
+.section-head { display: grid; gap: 14px; margin-bottom: 40px; }
+.section-head h2 { font-size: var(--step-3); }
+.section-head p { color: var(--muted); max-width: 60ch; }
+.keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.key { display: grid; gap: 14px; padding: 22px; background: var(--surface); min-width: 0; }
+.key .combo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font: 700 0.8rem/1 var(--mono); color: var(--muted); }
+.key b { font: 700 1.05rem/1.3 var(--display); }
+
+/* Privacy */
+.privacy { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+.privacy > * { min-width: 0; }
+.ledger { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
+.ledger div { display: flex; justify-content: space-between; gap: 16px; padding: 14px 18px; border-top: 1px solid var(--line); }
+.ledger div:first-child { border-top: 0; }
+.ledger dt { margin: 0; }
+.ledger dd { margin: 0; font: 700 0.85rem/1.6 var(--mono); color: var(--violet); text-align: right; }
+
+/* Install steps (a real sequence) */
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; counter-reset: step; }
+.step { display: grid; gap: 10px; align-content: start; padding: 24px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); counter-increment: step; min-width: 0; }
+.step::before { content: counter(step); font: 800 var(--step-2)/1 var(--display); color: var(--violet); }
+.step h3 { font-size: var(--step-1); }
+.step p { color: var(--muted); font-size: var(--step--1); }
+.step code { font: 500 0.82em var(--mono); background: var(--violet-soft); padding: 1px 6px; border-radius: 5px; color: var(--ink); overflow-wrap: anywhere; }
+
+.closing { display: grid; justify-items: center; text-align: center; gap: 22px; padding-block: 96px 72px; border-top: 1px solid var(--line); }
+.closing h2 { font-size: var(--step-3); }
+footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding-block: 28px 40px; border-top: 1px solid var(--line); font-size: var(--step--1); color: var(--muted); }
+
+@media (max-width: 880px) {
+  .hero, .row, .privacy { grid-template-columns: 1fr; gap: 36px; }
+  .row.flip .copy { order: 0; }
+  .facts { grid-template-columns: 1fr 1fr; }
+  .fact:nth-child(3) { border-left: 0; }
+  .fact:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .keys { grid-template-columns: 1fr 1fr; }
+  .steps { grid-template-columns: 1fr; }
+  .features { gap: 72px; padding-block: 72px; }
+}
+@media (max-width: 520px) {
+  .nav a:not(.gh) { display: none; }
+  .keys { grid-template-columns: 1fr; }
+  .facts { grid-template-columns: 1fr; }
+  .fact + .fact { border-left: 0; border-top: 1px solid var(--line); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .caret { animation: none; }
+  .capsule i, kbd { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="#top" aria-label="WinWispr home">
+      <span class="mark" aria-hidden="true"><i style="height:8px"></i><i style="height:14px"></i><i style="height:10px"></i><i style="height:16px"></i><i style="height:7px"></i></span>
+      WinWispr
+    </a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#features">Features</a>
+      <a href="#hotkeys">Hotkeys</a>
+      <a href="#privacy">Privacy</a>
+      <a class="gh" href="https://github.com/cryptedx/WinWisper">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Local dictation for Windows 11</p>
+        <h1 style="margin-top:18px">Hold a key. Speak. <em>It types.</em></h1>
+        <p class="lede">WinWispr turns your voice into text in any app. Recognition runs on your PC, so nothing you say leaves it.</p>
+        <div class="ctas">
+          <a class="btn primary" href="https://github.com/cryptedx/WinWisper/releases/latest">Download for Windows <small data-version>latest</small></a>
+          <a class="btn" href="https://github.com/cryptedx/WinWisper">View source on GitHub</a>
+        </div>
+        <p class="fine">Windows 11 x64 · Setup or portable ZIP · models ship in a separate installer</p>
+      </div>
+
+      <div class="demo" aria-label="Animated example of a dictation">
+        <div class="window">
+          <div class="titlebar"><span>Weekly update.txt</span><span class="dots" aria-hidden="true"><span>–</span><span>□</span><span>×</span></span></div>
+          <p class="doc"><span class="said" id="said"></span><span class="caret" aria-hidden="true"></span></p>
+        </div>
+        <div class="chord" id="chord"><kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>X</kbd></div>
+        <div class="capsule" id="capsule" aria-hidden="true"></div>
+        <p class="status" id="status">Ready</p>
+      </div>
+    </section>
+
+    <section class="facts" aria-label="Key facts">
+      <div class="fact"><b>0 bytes</b><span>of audio sent to the cloud</span></div>
+      <div class="fact"><b>&lt; 3 s</b><span>design goal for every translation</span></div>
+      <div class="fact"><b>DE ↔ EN</b><span>offline translation built in</span></div>
+      <div class="fact"><b>0.6B</b><span>parameter Parakeet TDT v3 speech model</span></div>
+    </section>
+
+    <div class="features" id="features">
+      <article class="row">
+        <div class="copy">
+          <p class="eyebrow">Dictation</p>
+          <h2>Talk into any text field</h2>
+          <p>Hold the hotkey and speak. A small capsule shows that WinWispr is listening, and the transcript lands where your cursor was: mail, chat, code editor or browser.</p>
+          <ul>
+            <li>Hold to talk, or press once to start and again to stop</li>
+            <li>Personal dictionary for names and terms it gets wrong</li>
+            <li>German voice commands for paragraphs, new lines and bullets</li>
+            <li><span>Lost a paste? <kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>V</kbd> puts it in again</span></li>
+          </ul>
+        </div>
+        <figure class="shot">
+          <img src="images/overlay.png" alt="The WinWispr recording capsule below a text window while dictating" width="1266" height="586">
+          <figcaption>Recording: the capsule's bars follow your voice</figcaption>
+        </figure>
+      </article>
+
+      <article class="row flip">
+        <div class="copy">
+          <p class="eyebrow">Translation</p>
+          <h2>German and English, both ways, offline</h2>
+          <p>Select text and press <kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>E</kbd>. WinWispr detects the language and shows the translation in a preview. Replace the selection, copy it, or swap the direction.</p>
+          <ul>
+            <li>Speak German, get English: hold <kbd>Shift</kbd> <kbd>Alt</kbd> <kbd>E</kbd></li>
+            <li>Selections up to 3,000 characters</li>
+            <li>The Opus-MT model runs on your PC, no account needed</li>
+          </ul>
+        </div>
+        <figure class="shot small">
+          <img src="images/translation-preview.png" alt="Translation preview showing a German sentence translated into English with Replace, Copy and Cancel buttons" width="520" height="300">
+          <figcaption>DE → EN preview with Replace, Copy and swap</figcaption>
+        </figure>
+      </article>
+
+      <article class="row">
+        <div class="copy">
+          <p class="eyebrow">Task board</p>
+          <h2>Say a task, review it, done</h2>
+          <p>A To Do, Doing and Done board with tags, due dates and Markdown notes. Dictate a task with <kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>T</kbd>; it opens as a draft and is saved only after you check it.</p>
+          <ul>
+            <li>Search, tag filters, sorting and drag between columns</li>
+            <li>A morning reminder for tasks that are due</li>
+            <li>Stored in one local file with a backup copy</li>
+          </ul>
+        </div>
+        <figure class="shot">
+          <img src="images/task-board.png" alt="The WinWispr task board with To Do, Doing and Done columns and tagged tasks" width="1346" height="813">
+          <figcaption>Task board with demo tasks</figcaption>
+        </figure>
+      </article>
+    </div>
+
+    <section class="section" id="hotkeys">
+      <div class="section-head">
+        <p class="eyebrow">Hotkeys</p>
+        <h2>Six shortcuts, all changeable</h2>
+        <p>These are the defaults. Each one can be changed in Settings, and dictation can run in Hold or Toggle mode.</p>
+      </div>
+      <div class="keys">
+        <div class="key"><span class="combo"><kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>X</kbd></span><b>Dictate</b></div>
+        <div class="key"><span class="combo"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>E</kbd></span><b>Translate the selection</b></div>
+        <div class="key"><span class="combo"><kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>E</kbd></span><b>Dictate German as English</b></div>
+        <div class="key"><span class="combo"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd></span><b>Paste the last result again</b></div>
+        <div class="key"><span class="combo"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd></span><b>Open the task board</b></div>
+        <div class="key"><span class="combo"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd></span><b>Dictate a task</b></div>
+      </div>
+    </section>
+
+    <section class="section privacy" id="privacy">
+      <div class="section-head" style="margin:0">
+        <p class="eyebrow">Privacy</p>
+        <h2>Your voice stays on your PC</h2>
+        <p>Speech recognition and translation run locally. Once WinWispr Models is installed, the app needs no network access at all. After pasting, it restores what was on your clipboard.</p>
+        <p class="fine">Data lives in <code style="font-family:var(--mono)">%LOCALAPPDATA%\WinWispr</code>. The uninstaller asks before deleting it.</p>
+      </div>
+      <dl class="ledger" aria-label="What WinWispr sends and stores">
+        <div><dt>Audio sent to a server</dt><dd>never</dd></div>
+        <div><dt>Transcripts sent to a server</dt><dd>never</dd></div>
+        <div><dt>Dictation history on disk</dt><dd>none</dd></div>
+        <div><dt>Last result kept</dt><dd>in memory, until exit</dd></div>
+        <div><dt>Account or sign-in</dt><dd>not needed</dd></div>
+        <div><dt>Network access with Models installed</dt><dd>none</dd></div>
+      </dl>
+    </section>
+
+    <section class="section" id="install">
+      <div class="section-head">
+        <p class="eyebrow">Install</p>
+        <h2>Running in three steps</h2>
+      </div>
+      <ol class="steps" style="list-style:none;margin:0;padding:0">
+        <li class="step"><h3>Install WinWispr</h3><p>Run <code>WinWispr-Setup-<span data-version>vX.Y.Z</span>.exe</code> from the latest release, or extract the portable ZIP to a folder of your choice.</p></li>
+        <li class="step"><h3>Add the models</h3><p>Run the WinWispr Models installer (about 870 MB) from its <code>models-vN</code> release once. It holds the speech model, the translation model and the voices.</p></li>
+        <li class="step"><h3>Hold and speak</h3><p>Pick your microphone in Settings, click into any text field and hold <code>Shift + Alt + X</code>.</p></li>
+      </ol>
+    </section>
+
+    <section class="closing">
+      <span class="mark" aria-hidden="true" style="height:34px;padding:0 12px;border-radius:17px;gap:3px"><i style="height:10px;width:3px"></i><i style="height:20px;width:3px"></i><i style="height:14px;width:3px"></i><i style="height:24px;width:3px"></i><i style="height:12px;width:3px"></i><i style="height:18px;width:3px"></i></span>
+      <h2>Try it on your next email</h2>
+      <a class="btn primary" href="https://github.com/cryptedx/WinWisper/releases/latest">Download the latest release</a>
+      <p class="fine">Signed with WinWispr's own self-signed certificate. SmartScreen may warn on download.</p>
+    </section>
+  </main>
+
+  <footer>
+    <span>WinWispr · local dictation for Windows 11</span>
+    <span><a href="https://github.com/cryptedx/WinWisper">Source</a> · <a href="https://github.com/cryptedx/WinWisper/releases">Releases</a> · <a href="https://github.com/cryptedx/WinWisper/blob/main/THIRD-PARTY-NOTICES.md">Third-party notices</a></span>
+  </footer>
+</div>
+
+<script>
+// Fills in the newest release tag; without network or API access the page keeps its generic text.
+fetch("https://api.github.com/repos/cryptedx/WinWisper/releases/latest")
+  .then(r => r.ok ? r.json() : null)
+  .then(r => { if (r && /^v\d+\.\d+\.\d+$/.test(r.tag_name)) document.querySelectorAll("[data-version]").forEach(e => { e.textContent = r.tag_name; }); })
+  .catch(() => {});
+
+(() => {
+  const capsule = document.getElementById("capsule");
+  const said = document.getElementById("said");
+  const chord = document.getElementById("chord");
+  const status = document.getElementById("status");
+  const bars = Array.from({ length: 18 }, () => capsule.appendChild(document.createElement("i")));
+  const lines = [
+    "Hi team, the release is out. ",
+    "Please update by Friday and send me any problems you see. ",
+    "Thanks for the quick reviews this week."
+  ];
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (reduced) {
+    said.textContent = lines.join("");
+    bars.forEach((b, i) => { b.style.height = (8 + ((i * 7) % 20)) + "px"; });
+    return;
+  }
+
+  let listening = false, t = 0;
+  const wave = () => {
+    t += 1;
+    bars.forEach((b, i) => {
+      const level = listening
+        ? 8 + Math.abs(Math.sin(t / 5 + i * 0.7) * Math.cos(t / 9 + i * 0.3)) * 24 + Math.random() * 4
+        : 6;
+      b.style.height = level.toFixed(0) + "px";
+    });
+  };
+  setInterval(wave, 90);
+
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const type = async text => {
+    for (const ch of text) { said.textContent += ch; await sleep(ch === " " ? 40 : 22); }
+  };
+
+  (async function loop() {
+    for (;;) {
+      said.textContent = "";
+      for (const line of lines) {
+        chord.classList.add("held"); listening = true; status.textContent = "Recording…";
+        await sleep(1700);
+        chord.classList.remove("held"); listening = false; status.textContent = "Transcribing…";
+        await sleep(450);
+        status.textContent = "Pasted";
+        await type(line);
+        await sleep(700);
+      }
+      status.textContent = "Ready";
+      await sleep(3200);
+    }
+  })();
+})();
+</script>
+</body>
+</html>
